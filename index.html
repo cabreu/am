@@ -121,7 +121,6 @@
                 <div class="flex items-center gap-2 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg font-mono text-xs">
                     <span class="text-[8px] text-gray-400 font-bold uppercase">SALA</span>
                     <span id="room-id-value" class="text-blue-600 font-bold select-all cursor-pointer">----</span>
-                    <!-- Adicionada classe view-only-hidden para impedir visualizadores de partilhar o QR -->
                     <button onclick="toggleQRModal()" class="view-only-hidden bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black shrink-0">QR</button>
                 </div>
                 <div id="controller-pin-display" class="hidden items-center gap-2 bg-green-50 border border-green-100 px-2 py-1 rounded-lg font-mono text-xs">
@@ -259,7 +258,6 @@
             <h3 class="font-bold text-gray-800 text-lg">Digitalizar para Ligar</h3>
             <div id="qrcode" class="flex justify-center p-4 bg-white border border-gray-50 rounded-xl mx-auto"></div>
             <div class="space-y-3">
-                <!-- Adicionada classe master-only-hidden para restringir partilha do PIN ao Master -->
                 <div class="master-only-hidden flex items-center gap-2 justify-center">
                     <input type="checkbox" id="qr-include-pin" class="rounded text-indigo-600" onchange="refreshQR()">
                     <label for="qr-include-pin" class="text-[10px] text-gray-500 font-bold uppercase">Incluir PIN de Controlo no QR</label>
@@ -473,12 +471,33 @@
                     clientConnections.push(conn);
                     conn.send({ type: 'init', role: role, state: appState });
                     if (currentPdfBuffer) {
-                        setTimeout(() => { if (conn.open) conn.send({ type: 'pdf-file', file: currentPdfBuffer.slice(0) }); }, 800);
+                        setTimeout(() => { 
+                            // Envia o PDF convertido em Base64 para novos utilizadores
+                            if (conn.open) conn.send({ type: 'pdf-file', file: currentPdfBuffer }); 
+                        }, 1000);
                     }
                     updateTerminalStats();
                 });
                 conn.on('data', data => {
-                    if (data.type === 'command' && conn.metadata.role === 'controller') processCommand(data.action, data.payload);
+                    if (conn.metadata.role !== 'controller') return;
+
+                    if (data.type === 'command') {
+                        processCommand(data.action, data.payload);
+                    } else if (data.type === 'pdf-file') {
+                        // Recebeu um PDF em formato Base64 de um controlador
+                        currentPdfBuffer = data.file;
+                        appState.isPdfVisible = true;
+                        appState.pdfPage = 1;
+                        loadPdf(data.file); 
+                        
+                        // O Mestre retransmite para todos os outros
+                        clientConnections.forEach(c => {
+                            if (c && c.open && c.peer !== conn.peer) {
+                                c.send({ type: 'pdf-file', file: data.file });
+                            }
+                        });
+                        broadcastState();
+                    }
                 });
                 conn.on('close', updateTerminalStats);
             });
@@ -584,6 +603,7 @@
 
             hostConnection.on('data', (data) => {
                 lastHeartbeat = Date.now();
+                
                 if (data.type === 'heartbeat') return;
                 if (data.type === 'init') { 
                     isInitialized = true;
@@ -592,8 +612,15 @@
                     applyPermissions(); 
                     updateUI(); 
                 }
-                if (data.type === 'state') { Object.assign(appState, data.data); updateUI(); }
-                if (data.type === 'pdf-file') { currentPdfBuffer = data.file; loadPdf(data.file); }
+                if (data.type === 'state') { 
+                    Object.assign(appState, data.data); 
+                    updateUI(); 
+                }
+                if (data.type === 'pdf-file') { 
+                    // Recebe o PDF em Base64 e desenha no ecrã
+                    currentPdfBuffer = data.file; 
+                    loadPdf(data.file); 
+                }
                 if (data.type === 'room-closing') { location.reload(); }
             });
 
@@ -625,53 +652,102 @@
             const file = e.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = async (ev) => {
-                currentPdfBuffer = ev.target.result;
-                appState.isPdfVisible = true; appState.pdfPage = 1;
-                await loadPdf(currentPdfBuffer.slice(0));
-                if (isHost) clientConnections.forEach(c => { if(c && c.open) c.send({ type: 'pdf-file', file: currentPdfBuffer.slice(0) }); });
-                updateUI(); broadcastState();
+                // Lê o ficheiro como uma string Base64 (Data URL) em vez de ArrayBuffer
+                const base64String = ev.target.result;
+                currentPdfBuffer = base64String;
+                appState.isPdfVisible = true; 
+                appState.pdfPage = 1;
+                
+                await loadPdf(base64String);
+                
+                // DIFUSÃO: O formato string garante que não há erros de memória no WebRTC
+                if (isHost) {
+                    clientConnections.forEach(c => { 
+                        if(c && c.open) c.send({ type: 'pdf-file', file: base64String }); 
+                    });
+                } else if (hostConnection && hostConnection.open) {
+                    hostConnection.send({ type: 'pdf-file', file: base64String });
+                }
+                
+                updateUI(); 
+                broadcastState();
             };
-            reader.readAsArrayBuffer(file);
+            // Modificação chave: Lê como DataURL (texto) em vez de ArrayBuffer (binário)
+            reader.readAsDataURL(file);
         }
 
-        async function loadPdf(buffer) {
+        async function loadPdf(base64DataUrl) {
             try {
-                const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
+                // Converter Base64 (Data URL) de volta para formato binário localmente no browser
+                const base64 = base64DataUrl.split(',')[1];
+                const binaryString = window.atob(base64);
+                const len = binaryString.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) {
+                    bytes[i] = binaryString.charCodeAt(i);
+                }
+
+                const loadingTask = pdfjsLib.getDocument({ data: bytes });
                 pdfDoc = await loadingTask.promise; 
                 appState.pdfTotalPages = pdfDoc.numPages;
                 document.getElementById('pdf-waiting-text').classList.add('hidden');
-                renderPage(appState.pdfPage); updateUI();
+                renderPage(appState.pdfPage); 
+                updateUI();
             } catch (e) { console.error("PDF Erro:", e); }
         }
 
         async function renderPage(num) {
-            if (!pdfViewerContainer || isRendering || !pdfDoc || pdfViewerContainer.offsetParent === null) { 
-                needsRendering = !!pdfDoc; 
-                return; 
+            if (!pdfDoc || !pdfViewerContainer) return;
+            
+            if (isRendering) {
+                needsRendering = true;
+                return;
             }
-            isRendering = true; needsRendering = false;
+
+            if (pdfViewerContainer.offsetParent === null) {
+                needsRendering = true;
+                return;
+            }
+
+            isRendering = true;
+            needsRendering = false;
+
             try {
                 const page = await pdfDoc.getPage(num);
                 const container = pdfViewerContainer;
                 const cw = container.clientWidth - 4, ch = container.clientHeight - 4;
-                if (cw <= 0 || ch <= 0) { isRendering = false; setTimeout(() => renderPage(num), 100); return; }
+                
+                if (cw <= 0 || ch <= 0) {
+                    isRendering = false;
+                    needsRendering = true;
+                    return;
+                }
+
                 const viewport_base = page.getViewport({ scale: 1 });
                 const scale = Math.min(cw / viewport_base.width, ch / viewport_base.height);
                 const dpr = Math.min(window.devicePixelRatio || 1, 2); 
+                // CORREÇÃO: Removido a chamada incorreta page.getPage(num)
                 const viewport = page.getViewport({ scale: scale * dpr });
                 const canvas = document.getElementById('pdf-canvas');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
+                
                 if (canvas.width !== viewport.width || canvas.height !== viewport.height) {
                     canvas.width = viewport.width; canvas.height = viewport.height;
                     canvas.style.height = (viewport.height / dpr) + "px";
                     canvas.style.width = (viewport.width / dpr) + "px";
                 }
+                
                 await page.render({ canvasContext: ctx, viewport }).promise;
                 lastRenderedPage = num;
                 const info = document.getElementById('pdf-page-info');
                 if (info) info.textContent = `Pág. ${num} / ${appState.pdfTotalPages}`;
-            } finally { isRendering = false; if (needsRendering) renderPage(appState.pdfPage); }
+            } catch (err) {
+                console.error("Erro na renderização:", err);
+            } finally {
+                isRendering = false;
+                if (needsRendering) renderPage(appState.pdfPage);
+            }
         }
 
         if (pdfViewerContainer) {
@@ -717,11 +793,16 @@
                 startBtn.textContent = currentStatus === "running" ? "PAUSAR" : (currentStatus === "paused" ? "RETOMAR" : "INICIAR");
                 startBtn.className = `flex-1 adaptive-button text-white rounded-xl font-bold shadow-md active:scale-95 transition-none ${currentStatus === "running" ? 'bg-yellow-500' : 'bg-green-600'}`;
             }
+            
             if (appState.isPdfVisible) {
                 if (rightColumnWrapper && !rightColumnWrapper.contains(timerSection)) rightColumnWrapper.prepend(timerSection);
                 if (resizer) resizer.classList.remove('hidden');
                 document.documentElement.style.setProperty('--pdf-width', customPdfWidth + '%');
-                if (pdfDoc && appState.pdfPage !== lastRenderedPage) renderPage(appState.pdfPage);
+                
+                if (pdfDoc && (appState.pdfPage !== lastRenderedPage || needsRendering)) {
+                    document.getElementById('pdf-waiting-text').classList.add('hidden');
+                    renderPage(appState.pdfPage);
+                }
             } else {
                 if (leftContentArea && !leftContentArea.contains(timerSection)) leftContentArea.appendChild(timerSection);
             }
@@ -731,21 +812,10 @@
             if (!roleBadge) return;
             const roomIdVal = document.getElementById('room-id-value').textContent;
             const isActuallyHost = (peer && peer.id === 'amesp-' + roomIdVal);
-            
-            // Lógica de papéis: Mestre (isHost), Controlador (isController), Visualizador
-            if (isActuallyHost || !peer) { 
-                roleBadge.textContent = peer ? "Mestre" : "Local"; 
-                isController = true; 
-                isHost = true; 
-            } else { 
-                roleBadge.textContent = isController ? "Controlo" : "Visualização"; 
-                isHost = false; 
-            }
-            
-            // Toggle de classes para ocultar elementos baseados no cargo
+            if (isActuallyHost || !peer) { roleBadge.textContent = peer ? "Mestre" : "Local"; isController = true; isHost = true; } 
+            else { roleBadge.textContent = isController ? "Controlo" : "Visualização"; isHost = false; }
             document.querySelectorAll('.view-only-hidden').forEach(el => el.classList.toggle('is-viewer', !isController));
             document.querySelectorAll('.master-only-hidden').forEach(el => el.classList.toggle('is-not-master', !isHost));
-            
             updateUI();
         }
 
