@@ -264,14 +264,14 @@
                 </button>
             </div>
             
-            <div id="pdf-master-controls" class="flex items-center gap-3 shrink-0">
-                <div id="pdf-upload-container" class="view-only-hidden">
+            <div id="pdf-master-controls" class="flex items-center gap-3 shrink-0 flex-1 sm:flex-none">
+                <div id="pdf-upload-container" class="view-only-hidden shrink-0">
                     <label for="pdf-input" class="text-[9px] font-black text-indigo-600 uppercase cursor-pointer bg-indigo-50 px-3 py-2 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition inline-block text-center min-w-[60px]">
                         PDF
                     </label>
                     <input type="file" id="pdf-input" accept="application/pdf" class="hidden" onchange="handlePdfUpload(event)">
                 </div>
-                <button id="btn-header-pdf-toggle" onclick="sendAction('togglePdf')" class="view-only-hidden px-4 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-indigo-700 transition uppercase tracking-wider min-w-[170px] truncate">
+                <button id="btn-header-pdf-toggle" onclick="sendAction('togglePdf')" class="view-only-hidden px-4 py-2 bg-indigo-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-indigo-700 transition uppercase tracking-wider w-full sm:w-auto sm:min-w-[170px] truncate">
                     Mostrar Apresentação
                 </button>
             </div>
@@ -1065,7 +1065,7 @@
             } else { 
                 if (isInitialized) { 
                     panel.classList.remove('hidden'); 
-                    panel.classList.add('lg:flex'); 
+                    panel.classList.add('flex'); 
                 } else { 
                     panel.classList.add('hidden'); 
                 } 
