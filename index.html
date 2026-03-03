@@ -1086,7 +1086,7 @@
             const min = parseInt(document.getElementById('custom-min').value) || 0;
             const sec = parseInt(document.getElementById('custom-sec').value) || 0;
             const total = (min * 60) + sec;
-            if (total > 0) sendAction('setTimer', { seconds: total, label: 'INTERVENÇÃO (PERSONALIZADO)' });
+            if (total > 0) sendAction('setTimer', { seconds: total, label: 'TEMPO (PERSONALIZADO)' });
         }
 
         function processCommand(action, payload) {
