@@ -4,6 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AM-Esposende</title>
+    
+    <!-- === CONFIGURAÇÃO GLOBAL === -->
+    <script type="application/json" id="am-config">
+    {
+      "groups": [
+        {
+          "title": "GRUPOS POLÍTICOS",
+          "color": "blue",
+          "titleColor": "blue",
+          "columns": 2,
+          "items": [
+            { "label": "MUDANÇA (PAOD)", "shortLabel": "MUDANÇA", "seconds": 810 , "color": "blue"},
+            { "label": "PSD (PAOD)", "shortLabel": "PSD", "seconds": 630 , "color": "blue"},
+            { "label": "PS (PAOD)", "shortLabel": "PS", "seconds": 180 , "color": "blue"},
+            { "label": "CHEGA (PAOD)", "shortLabel": "CHEGA", "seconds": 180 , "color": "blue"}
+          ]
+        },
+        {
+          "title": "EXECUTIVO MUNICIPAL",
+          "color": "blue",
+          "titleColor": "blue",
+          "columns": 1,
+          "items": [
+            { "label": "PRESIDENTE DA CÂMARA MUNICIPAL", "shortLabel": "P. CÂMARA MUNICIPAL", "seconds": 810 }
+          ]
+        },
+        {
+          "title": "DEBATE",
+          "color": "indigo",
+          "titleColor": "indigo",
+          "items": [
+            { "label": "1.ª INTERVENÇÃO", "shortLabel": "1.ª INTERV.", "seconds": 300 },
+            { "label": "2.ª INTERVENÇÃO", "shortLabel": "2.ª INTERV.", "seconds": 180 },
+            { "label": "PEDIDO DE ESCLARECIMENTO", "shortLabel": "ESCLARECIMENTO", "seconds": 120 },
+            { "label": "INTERVENÇÃO PÚBLICO", "shortLabel": "PÚBLICO", "seconds": 300 , "color": "green"}
+          ]
+        }
+      ],
+      "messages": {
+        "timeExpired": "TEMPO ESGOTADO!",
+        "defaultSubject": "PEDIDO DE ESCLARECIMENTO",
+        "pdfWaiting": "Carregue um PDF para iniciar..."
+      },
+      "ui": {
+        "timer": {
+          "defaultMinutes": 20,
+          "defaultSeconds": 0
+        }
+      }
+    }
+    </script>
+    <!-- =========================== -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -123,7 +176,7 @@
 
         .timer-strip-buttons {
             height: auto;
-            margin-top: 8px;
+            margin-top: 16px;
         }
 
         .adaptive-button { 
@@ -136,8 +189,8 @@
 
         @container (max-width: 450px) {
             .adaptive-button {
-                font-size: 12px;
-                padding-block: 10px;
+                font-size: 10px;
+                padding-block: 8px;
                 border-radius: 0.5rem;
             }
         }
@@ -179,7 +232,7 @@
         /* Grelha Adaptativa para os botões laterais */
         .adaptive-grid { 
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(var(--grid-cols, 2), 1fr);
             gap: 0.5rem;
         }
 
@@ -352,53 +405,9 @@
         <div id="right-column" class="panel-container">
             <div id="side-panel-wrapper" class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto pr-1 pb-2 relative">
                 <div id="side-panel" class="view-only-hidden flex flex-col gap-3">
-                    <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100 shrink-0">
-                        <h2 class="text-[9px] font-black text-gray-400 uppercase mb-2 tracking-widest flex items-center gap-2">
-                            <span class="w-1 h-1 bg-blue-500 rounded-full"></span> GRUPOS POLÍTICOS
-                        </h2>
-                        <div class="adaptive-grid">
-                            <button onclick="sendAction('setTimer', {seconds: 810, label: 'MUDANÇA (PAOD)'})" class="side-btn p-2 border rounded-xl hover:bg-blue-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-blue-700 truncate">MUDANÇA</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">13:30</span>
-                            </button>
-                            <button onclick="sendAction('setTimer', {seconds: 630, label: 'PSD (PAOD)'})" class="side-btn p-2 border rounded-xl hover:bg-blue-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-blue-700 truncate">PSD</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">10:30</span>
-                            </button>
-                            <button onclick="sendAction('setTimer', {seconds: 180, label: 'PS (PAOD)'})" class="side-btn p-2 border rounded-xl hover:bg-blue-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-blue-700 truncate">PS</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">03:00</span>
-                            </button>
-                            <button onclick="sendAction('setTimer', {seconds: 180, label: 'CHEGA (PAOD)'})" class="side-btn p-2 border rounded-xl hover:bg-blue-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-blue-700 truncate">CHEGA</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">03:00</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100 shrink-0">
-                        <h2 class="text-[9px] font-black text-gray-400 uppercase mb-2 tracking-widest flex items-center gap-2">
-                            <span class="w-1 h-1 bg-indigo-500 rounded-full"></span> DEBATE
-                        </h2>
-                        <div class="adaptive-grid">
-                            <button onclick="sendAction('setTimer', {seconds: 300, label: '1.ª INTERVENÇÃO'})" class="side-btn p-2 border rounded-xl hover:bg-indigo-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-indigo-700 truncate">1.ª INTERV.</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">05:00</span>
-                            </button>
-                            <button onclick="sendAction('setTimer', {seconds: 180, label: '2.ª INTERVENÇÃO'})" class="side-btn p-2 border rounded-xl hover:bg-indigo-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-indigo-700 truncate">2.ª INTERV.</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">03:00</span>
-                            </button>
-                            <button onclick="sendAction('setTimer', {seconds: 120, label: 'PEDIDO DE ESCLARECIMENTO'})" class="side-btn p-2 border rounded-xl hover:bg-indigo-50 transition group flex justify-between items-center overflow-hidden">
-                                <span class="btn-label text-[10px] font-bold group-hover:text-indigo-700 truncate">ESCLAREC.</span>
-                                <span class="btn-time text-[10px] font-bold text-gray-800 ml-2 shrink-0">02:00</span>
-                            </button>
-                            <button onclick="sendAction('setTimer', {seconds: 300, label: 'INTERVENÇÃO PÚBLICO'})" class="side-btn p-2 border border-red-100 bg-red-50/30 rounded-xl hover:bg-red-50 transition group flex justify-between items-center overflow-hidden text-red-700">
-                                <span class="btn-label text-[10px] font-bold truncate">PÚBLICO</span>
-                                <span class="btn-time text-[10px] font-bold text-red-800 ml-2 shrink-0">05:00</span>
-                            </button>
-                        </div>
-                    </div>
+                    
+                    <!-- Contentor para a Geração Dinâmica de Grupos e Botões de Tempo -->
+                    <div id="dynamic-groups-container" class="flex flex-col gap-3"></div>
 
                     <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100 shrink-0">
                         <h2 class="text-[9px] font-black text-gray-400 uppercase mb-2 tracking-widest flex items-center gap-2">
@@ -407,12 +416,12 @@
                         <div class="flex items-start gap-2 custom-timer-controls">
                             <div class="flex-1 flex gap-1.5 items-start w-full">
                                 <div class="flex-1 flex flex-col">
-                                    <input type="number" id="custom-min" min="0" max="99" value="20" class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all" placeholder="00">
+                                    <input type="number" id="custom-min" min="0" max="99" class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all" placeholder="00">
                                     <span class="text-[8px] font-black text-gray-400 uppercase text-center mt-1">Min</span>
                                 </div>
                                 <span class="text-xs font-bold text-gray-400 mt-2">:</span>
                                 <div class="flex-1 flex flex-col">
-                                    <input type="number" id="custom-sec" min="0" max="59" value="0" class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all" placeholder="00">
+                                    <input type="number" id="custom-sec" min="0" max="59" class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all" placeholder="00">
                                     <span class="text-[8px] font-black text-gray-400 uppercase text-center mt-1">Seg</span>
                                 </div>
                             </div>
@@ -448,6 +457,73 @@
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+        // --- CARREGAMENTO DA CONFIGURAÇÃO JSON ---
+        const defaultConfig = {
+            "groups": [
+                {
+                    "title": "GRUPOS POLÍTICOS",
+                    "color": "blue",
+                    "titleColor": "gray",
+                    "items": [
+                        { "label": "MUDANÇA (PAOD)", "shortLabel": "MUDANÇA", "seconds": 810 },
+                        { "label": "PSD (PAOD)", "shortLabel": "PSD", "seconds": 630 },
+                        { "label": "PS (PAOD)", "shortLabel": "PS", "seconds": 180 },
+                        { "label": "CHEGA (PAOD)", "shortLabel": "CHEGA", "seconds": 180 }
+                    ]
+                },
+                {
+                    "title": "EXECUTIVO MUNICIPAL",
+                    "color": "blue",
+                    "titleColor": "blue",
+                    "columns": 1,
+                    "items": [
+                        { "label": "PRESIDENTE DA CÂMARA MUNICIPAL", "shortLabel": "P. CÂMARA MUNICIPAL", "seconds": 810 }
+                    ]
+                },
+                {
+                    "title": "DEBATE",
+                    "color": "indigo",
+                    "titleColor": "gray",
+                    "items": [
+                        { "label": "1.ª INTERVENÇÃO", "shortLabel": "1.ª INTERV.", "seconds": 300 },
+                        { "label": "2.ª INTERVENÇÃO", "shortLabel": "2.ª INTERV.", "seconds": 180 },
+                        { "label": "PEDIDO DE ESCLARECIMENTO", "shortLabel": "ESCLAREC.", "seconds": 120 },
+                        { "label": "INTERVENÇÃO PÚBLICO", "shortLabel": "PÚBLICO", "seconds": 300 }
+                    ]
+                }
+            ],
+            "messages": {
+                "timeExpired": "TEMPO ESGOTADO!",
+                "defaultSubject": "PEDIDO DE ESCLARECIMENTO",
+                "pdfWaiting": "Carregue um PDF para iniciar..."
+            },
+            "ui": {
+                "timer": {
+                    "defaultMinutes": 20,
+                    "defaultSeconds": 0
+                }
+            }
+        };
+
+        function loadConfiguration() {
+            let conf = JSON.parse(JSON.stringify(defaultConfig)); // Deep copy fallback
+            try {
+                const scriptEl = document.getElementById('am-config');
+                if (scriptEl) {
+                    const parsed = JSON.parse(scriptEl.textContent);
+                    if (parsed.groups) conf.groups = parsed.groups;
+                    if (parsed.messages) conf.messages = { ...conf.messages, ...parsed.messages };
+                    if (parsed.ui) conf.ui = { ...conf.ui, ...parsed.ui };
+                }
+            } catch (e) {
+                console.error("Configuração JSON inválida. A utilizar fallback seguro.");
+            }
+            return conf;
+        }
+
+        const AM_CONFIG = loadConfiguration();
+        // -----------------------------------------
+
         const display = document.getElementById('timer-display');
         const timerSection = document.getElementById('timer-section');
         const leftContentArea = document.getElementById('left-content-area');
@@ -466,7 +542,7 @@
             timeLeft: 120,
             initialTime: 120,
             isRunning: false,
-            subject: 'PEDIDO DE ESCLARECIMENTO', 
+            subject: AM_CONFIG.messages.defaultSubject, 
             pdfPage: 1,
             pdfTotalPages: 0,
             isPdfVisible: false,
@@ -490,6 +566,65 @@
                 try { peer.disconnect(); peer.destroy(); } catch (e) {}
             }
         });
+
+        // --- GERAÇÃO DINÂMICA DE INTERFACE ---
+        function renderDynamicGroups(groups) {
+            const container = document.getElementById('dynamic-groups-container');
+            if (!container) return;
+            
+            const getColorConfig = (color) => {
+                const colors = {
+                    'indigo': { dot: 'bg-indigo-500', btn: 'border hover:bg-indigo-50', label: 'group-hover:text-indigo-700', time: 'text-gray-800', titleText: 'text-indigo-500' },
+                    'blue': { dot: 'bg-blue-500', btn: 'border hover:bg-blue-50', label: 'group-hover:text-blue-700', time: 'text-gray-800', titleText: 'text-blue-500' },
+                    'red': { dot: 'bg-red-500', btn: 'border border-red-100 bg-red-50/30 hover:bg-red-50 text-red-700', label: 'group-hover:text-red-800', time: 'text-red-800', titleText: 'text-red-500' },
+                    'green': { dot: 'bg-green-500', btn: 'border hover:bg-green-50', label: 'group-hover:text-green-700', time: 'text-gray-800', titleText: 'text-green-500' },
+                    'orange': { dot: 'bg-orange-500', btn: 'border hover:bg-orange-50', label: 'group-hover:text-orange-700', time: 'text-gray-800', titleText: 'text-orange-500' },
+                    'gray': { dot: 'bg-gray-500', btn: 'border hover:bg-gray-50', label: 'group-hover:text-gray-700', time: 'text-gray-800', titleText: 'text-gray-400' }
+                };
+                return colors[color] || colors['blue'];
+            };
+
+            let html = '';
+            groups.forEach(group => {
+                const groupColor = getColorConfig(group.color || 'blue');
+                const titleColorClass = group.titleColor ? getColorConfig(group.titleColor).titleText : 'text-gray-400';
+
+                html += `
+                <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100 shrink-0">
+                    <h2 class="text-[9px] font-black ${titleColorClass} uppercase mb-2 tracking-widest flex items-center gap-2">
+                        <span class="w-1 h-1 ${groupColor.dot} rounded-full"></span> ${group.title}
+                    </h2>
+                    <div class="adaptive-grid" style="--grid-cols: ${group.columns || 2}">
+                `;
+                
+                group.items.forEach(item => {
+                    const m = Math.floor(item.seconds / 60).toString().padStart(2, '0');
+                    const s = (item.seconds % 60).toString().padStart(2, '0');
+                    const timeStr = `${m}:${s}`;
+                    
+                    // Escapar apóstrofos que possam existir nos labels da configuração JSON
+                    const safeLabel = item.label.replace(/'/g, "\\'");
+                    const actionStr = `sendAction('setTimer', {seconds: ${item.seconds}, label: '${safeLabel}'})`;
+                    
+                    const itemColorName = item.color || group.color || 'blue';
+                    const c = getColorConfig(itemColorName);
+                    
+                    html += `
+                    <button onclick="${actionStr}" class="side-btn p-2 rounded-xl transition group flex justify-between items-center overflow-hidden ${c.btn}">
+                        <span class="btn-label text-[10px] font-bold truncate ${c.label}">${item.shortLabel}</span>
+                        <span class="btn-time text-[10px] font-bold ml-2 shrink-0 ${c.time}">${timeStr}</span>
+                    </button>
+                    `;
+                });
+                
+                html += `
+                    </div>
+                </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
 
         function updateClock() {
             const clockEl = document.getElementById('clock-display');
@@ -1138,9 +1273,21 @@
             new QRCode(qrContainer, { text: finalUrl, width: 180, height: 180, colorDark : "#1f2937", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
         }
         
+        // --- INICIALIZAÇÃO DA INTERFACE COM A CONFIGURAÇÃO JSON ---
         window.addEventListener('load', () => { 
+            // 1. Aplicar Configurações Visuais e Dinâmicas
+            document.getElementById('alert-box').textContent = AM_CONFIG.messages.timeExpired;
+            document.getElementById('pdf-waiting-text').textContent = AM_CONFIG.messages.pdfWaiting;
+            document.getElementById('custom-min').value = AM_CONFIG.ui.timer.defaultMinutes;
+            document.getElementById('custom-sec').value = AM_CONFIG.ui.timer.defaultSeconds;
+            
+            // 2. Gerar Grupos e Botões
+            renderDynamicGroups(AM_CONFIG.groups);
+
+            // 3. Processar link de entrada
             const room = new URLSearchParams(window.location.search).get('room'); 
             if (room) { document.getElementById('join-id-input').value = room; setTimeout(joinRoom, 1000); } 
+            
             updateUI(); 
         });
     </script>
