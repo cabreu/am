@@ -45,13 +45,15 @@
       "messages": {
         "timeExpired": "TEMPO ESGOTADO!",
         "defaultSubject": "PEDIDO DE ESCLARECIMENTO",
-        "pdfWaiting": "Carregue um PDF para iniciar..."
+        "pdfWaiting": "Carregue um PDF para iniciar...",
+        "pdfTooLarge": "O ficheiro PDF excede o tamanho máximo permitido de 100MB."
       },
       "ui": {
         "timer": {
           "defaultMinutes": 20,
           "defaultSeconds": 0
-        }
+        },
+        "maxPdfSizeMB": 100
       }
     }
     </script>
@@ -495,13 +497,15 @@
             "messages": {
                 "timeExpired": "TEMPO ESGOTADO!",
                 "defaultSubject": "PEDIDO DE ESCLARECIMENTO",
-                "pdfWaiting": "Carregue um PDF para iniciar..."
+                "pdfWaiting": "Carregue um PDF para iniciar...",
+                "pdfTooLarge": "O ficheiro PDF excede o tamanho máximo permitido de 5MB."
             },
             "ui": {
                 "timer": {
                     "defaultMinutes": 20,
                     "defaultSeconds": 0
-                }
+                },
+                "maxPdfSizeMB": 5
             }
         };
 
@@ -971,6 +975,21 @@
 
         function handlePdfUpload(e) {
             const file = e.target.files[0]; if (!file) return;
+            
+            const maxSizeInBytes = (AM_CONFIG.ui.maxPdfSizeMB || 5) * 1024 * 1024;
+            if (file.size > maxSizeInBytes) {
+                const alertBox = document.getElementById('alert-box');
+                const oldText = alertBox.textContent;
+                alertBox.textContent = AM_CONFIG.messages.pdfTooLarge;
+                alertBox.classList.remove('hidden');
+                setTimeout(() => {
+                    alertBox.classList.add('hidden');
+                    alertBox.textContent = oldText; // Restaura o texto original
+                }, 4000);
+                e.target.value = ''; // Limpa o input
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 const base64String = ev.target.result;
