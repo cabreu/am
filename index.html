@@ -916,12 +916,12 @@
                 if (data.type === 'heartbeat') return;
                 
                 if (data.type === 'init') { 
-                    isInitialized = true; 
+                    isInitialized = true; https://github.com/cabreu/am/blob/main/index.html
                     isController = (data.role === 'controller'); 
                     Object.assign(appState, data.state); 
                     applyPermissions(); 
                     updateUI(); 
-                    statusText(isController ? "Controlo OK" : "Visualização OK");
+                    statusText(isController ? "Terminal de Controlo Ok" : "Terminal de Visualização Ok");
                 }
                 
                 if (data.type === 'state') { 
