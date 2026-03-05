@@ -34,7 +34,6 @@
           "title": "DEBATE",
           "color": "indigo",
           "titleColor": "indigo",
-          "columns": 2,
           "items": [
             { "label": "1.ª INTERVENÇÃO", "shortLabel": "1.ª INTERV.", "seconds": 300 },
             { "label": "2.ª INTERVENÇÃO", "shortLabel": "2.ª INTERV.", "seconds": 180 },
@@ -54,7 +53,10 @@
           "defaultMinutes": 20,
           "defaultSeconds": 0
         },
-        "maxPdfSizeMB": 100
+        "maxPdfSizeMB": 100,
+        "maxManualReconnectAttempts": 5,
+        "manualReconnectDelayMs": 3000,
+        "maxCollisionAttempts": 25
       }
     }
     </script>
@@ -499,14 +501,17 @@
                 "timeExpired": "TEMPO ESGOTADO!",
                 "defaultSubject": "PEDIDO DE ESCLARECIMENTO",
                 "pdfWaiting": "Carregue um PDF para iniciar...",
-                "pdfTooLarge": "O ficheiro PDF excede o tamanho máximo permitido de 5MB."
+                "pdfTooLarge": "O ficheiro PDF excede o tamanho máximo permitido de 100MB."
             },
             "ui": {
                 "timer": {
                     "defaultMinutes": 20,
                     "defaultSeconds": 0
                 },
-                "maxPdfSizeMB": 5
+                "maxPdfSizeMB": 100,
+                "maxManualReconnectAttempts": 5,
+                "manualReconnectDelayMs": 6000,
+                "maxCollisionAttempts": 15
             }
         };
 
@@ -748,7 +753,7 @@
 
                 if (err.type === 'unavailable-id') {
                     collisionAttempts++;
-                    if (collisionAttempts <= 15) { 
+                    if (collisionAttempts <= (AM_CONFIG.ui.maxCollisionAttempts || 15)) { 
                         statusText("A recuperar sala...");
                         if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
                         reconnectTimeout = setTimeout(hostRoom, 3000); 
@@ -916,12 +921,12 @@
                 if (data.type === 'heartbeat') return;
                 
                 if (data.type === 'init') { 
-                    isInitialized = true; https://github.com/cabreu/am/blob/main/index.html
+                    isInitialized = true; 
                     isController = (data.role === 'controller'); 
                     Object.assign(appState, data.state); 
                     applyPermissions(); 
                     updateUI(); 
-                    statusText(isController ? "Terminal de Controlo Ok" : "Terminal de Visualização Ok");
+                    statusText(isController ? "Controlo OK" : "Visualização OK");
                 }
                 
                 if (data.type === 'state') { 
@@ -953,11 +958,48 @@
             });
         }
 
+        let manualRetryCount = 0;
+        let manualRetryTimer = null;
+
         function manualReconnect() {
-            if (!currentRoomId || isConnecting) return;
-            statusText("A ligar...");
-            cleanupNetwork(true);
-            if (isHost) hostRoom(); else joinRoom();
+            if (!currentRoomId) return;
+            
+            const maxAttempts = AM_CONFIG.ui.maxManualReconnectAttempts || 5;
+            manualRetryCount = 0;
+            if (manualRetryTimer) clearTimeout(manualRetryTimer);
+            
+            const attemptConnect = () => {
+                let hasConnection = false;
+                if (isHost) {
+                    hasConnection = !!(peer && !peer.disconnected);
+                } else {
+                    hasConnection = !!(hostConnection && hostConnection.open);
+                }
+                
+                if (hasConnection && manualRetryCount > 0) {
+                    manualRetryCount = 0;
+                    return;
+                }
+                
+                manualRetryCount++;
+                
+                if (manualRetryCount > maxAttempts) {
+                    statusText("Falha na Ligação");
+                    setConnectionIndicator('error');
+                    isConnecting = false;
+                    manualRetryCount = 0;
+                    updateUI();
+                    return;
+                }
+
+                statusText(`A ligar... (${manualRetryCount}/${maxAttempts})`);
+                cleanupNetwork(true);
+                if (isHost) hostRoom(); else joinRoom();
+                
+                manualRetryTimer = setTimeout(attemptConnect, AM_CONFIG.ui.manualReconnectDelayMs || 6000); 
+            };
+            
+            attemptConnect();
         }
 
         window.addEventListener('online', () => {
