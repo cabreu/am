@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AM-Esposende</title>
-    
+
     <!-- === CONFIGURAÇÃO GLOBAL === -->
     <script type="application/json" id="am-config">
     {
@@ -69,94 +70,208 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
-        
-        :root { --pdf-width: 65%; }
 
-        body { 
-            font-family: 'Inter', sans-serif; 
-            height: 100vh; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            background-color: #f3f4f6; 
+        :root {
+            --pdf-width: 65%;
         }
 
-        body.resizing { user-select: none !important; cursor: col-resize !important; }
-        .view-only-hidden.is-viewer { display: none !important; }
-        .master-only-hidden.is-not-master { display: none !important; }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        body {
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background-color: #f3f4f6;
+        }
 
-        #main-layout { display: flex; flex: 1; min-height: 0; padding: 0 0.5rem 0.5rem 0.5rem; gap: 0; }
+        body.resizing {
+            user-select: none !important;
+            cursor: col-resize !important;
+        }
+
+        .view-only-hidden.is-viewer {
+            display: none !important;
+        }
+
+        .master-only-hidden.is-not-master {
+            display: none !important;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        #main-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            padding: 0 0.5rem 0.5rem 0.5rem;
+            gap: 0;
+        }
 
         /* --- LÓGICA DE VISIBILIDADE INICIAL --- */
-        body[data-initialized="false"] #main-layout { display: none !important; }
-        body[data-initialized="true"] #welcome-section { display: none !important; }
+        body[data-initialized="false"] #main-layout {
+            display: none !important;
+        }
 
-        #left-column { display: flex; flex-direction: column; gap: 0.5rem; min-height: 0; width: 100%; transition: width 0.3s ease-in-out; }
-        body.resizing #left-column { transition: none !important; }
+        body[data-initialized="true"] #welcome-section {
+            display: none !important;
+        }
 
-        #right-column { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; height: 100%; flex: 1; }
+        #left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-height: 0;
+            width: 100%;
+            transition: width 0.3s ease-in-out;
+        }
 
-        body[data-pdf="visible"] #left-column { width: var(--pdf-width); }
-        body[data-pdf="visible"][data-user="admin"] #pdf-controls { display: flex !important; }
+        body.resizing #left-column {
+            transition: none !important;
+        }
+
+        #right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 0;
+            height: 100%;
+            flex: 1;
+        }
+
+        body[data-pdf="visible"] #left-column {
+            width: var(--pdf-width);
+        }
+
+        body[data-pdf="visible"][data-user="admin"] #pdf-controls {
+            display: flex !important;
+        }
 
         /* --- ESTILOS PARA MODOS DE LAYOUT (VISUALIZADOR) --- */
-        body[data-layout="pdf-only"] #timer-section { display: none !important; }
-        body[data-layout="pdf-only"] #left-column { width: 100% !important; }
-        body[data-layout="pdf-only"] #right-column { display: none !important; }
-        body[data-layout="pdf-only"] #resizer { display: none !important; }
+        body[data-layout="pdf-only"] #timer-section {
+            display: none !important;
+        }
 
-        body[data-layout="timer-only"] #pdf-viewer-container { display: none !important; }
-        body[data-layout="timer-only"] #pdf-controls { display: none !important; }
-        body[data-layout="timer-only"] #left-column { width: 100% !important; }
-        body[data-layout="timer-only"] #resizer { display: none !important; }
+        body[data-layout="pdf-only"] #left-column {
+            width: 100% !important;
+        }
+
+        body[data-layout="pdf-only"] #right-column {
+            display: none !important;
+        }
+
+        body[data-layout="pdf-only"] #resizer {
+            display: none !important;
+        }
+
+        body[data-layout="timer-only"] #pdf-viewer-container {
+            display: none !important;
+        }
+
+        body[data-layout="timer-only"] #pdf-controls {
+            display: none !important;
+        }
+
+        body[data-layout="timer-only"] #left-column {
+            width: 100% !important;
+        }
+
+        body[data-layout="timer-only"] #resizer {
+            display: none !important;
+        }
 
         /* Visualização Otimizada: Visualizador com Ambos */
-        body[data-user="viewer"][data-layout="both"] #main-layout { flex-direction: column; }
-        body[data-user="viewer"][data-layout="both"] #left-column { width: 100% !important; flex: 1; }
-        body[data-user="viewer"][data-layout="both"] #resizer { display: none !important; }
-        body[data-user="viewer"][data-layout="both"] #right-column { display: none !important; }
-        
-        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section { 
-            flex: 0 0 auto; 
-            height: 84px; 
-            min-height: 84px; 
-            padding-top: 0.5rem; 
-            padding-bottom: 0.5rem; 
+        body[data-user="viewer"][data-layout="both"] #main-layout {
+            flex-direction: column;
+        }
+
+        body[data-user="viewer"][data-layout="both"] #left-column {
+            width: 100% !important;
+            flex: 1;
+        }
+
+        body[data-user="viewer"][data-layout="both"] #resizer {
+            display: none !important;
+        }
+
+        body[data-user="viewer"][data-layout="both"] #right-column {
+            display: none !important;
+        }
+
+        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section {
+            flex: 0 0 auto;
+            height: 84px;
+            min-height: 84px;
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
             border-bottom-width: 0px;
-            border-top: 4px solid #1e40af; 
+            border-top: 4px solid #1e40af;
             border-radius: 1rem;
             margin-top: 0.25rem;
         }
-        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section .timer-strip-description { height: 18px; margin-bottom: 0; }
-        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section .timer-strip-display { min-height: 40px; }
-        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section #timer-display { font-size: 70px !important; }
-        
-        body[data-user="viewer"][data-layout="both"] #pdf-viewer-container { flex: 1; }
+
+        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section .timer-strip-description {
+            height: 18px;
+            margin-bottom: 0;
+        }
+
+        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section .timer-strip-display {
+            min-height: 40px;
+        }
+
+        body[data-user="viewer"][data-layout="both"][data-pdf="visible"] #timer-section #timer-display {
+            font-size: 70px !important;
+        }
+
+        body[data-user="viewer"][data-layout="both"] #pdf-viewer-container {
+            flex: 1;
+        }
 
         body[data-pdf="hidden"] #pdf-viewer-container,
         body[data-pdf="hidden"] #pdf-controls,
-        body[data-user="viewer"] #pdf-controls { display: none !important; }
-        
-        body[data-pdf="hidden"][data-user="viewer"] #left-column { width: 100% !important; }
-        body[data-pdf="hidden"][data-user="viewer"] #right-column { display: none !important; }
-        body[data-pdf="hidden"][data-user="viewer"] #resizer { display: none !important; }
+        body[data-user="viewer"] #pdf-controls {
+            display: none !important;
+        }
 
-        body[data-pdf="hidden"][data-user="admin"] #left-column { width: var(--pdf-width); }
-        body[data-pdf="hidden"][data-user="admin"] #right-column { display: flex !important; }
+        body[data-pdf="hidden"][data-user="viewer"] #left-column {
+            width: 100% !important;
+        }
+
+        body[data-pdf="hidden"][data-user="viewer"] #right-column {
+            display: none !important;
+        }
+
+        body[data-pdf="hidden"][data-user="viewer"] #resizer {
+            display: none !important;
+        }
+
+        body[data-pdf="hidden"][data-user="admin"] #left-column {
+            width: var(--pdf-width);
+        }
+
+        body[data-pdf="hidden"][data-user="admin"] #right-column {
+            display: flex !important;
+        }
 
         /* --- COMPONENTES --- */
-        #timer-section { 
-            flex: 1; 
-            container-type: inline-size; 
-            display: flex; 
-            flex-direction: column; 
-            min-height: 180px; 
+        #timer-section {
+            flex: 1;
+            container-type: inline-size;
+            display: flex;
+            flex-direction: column;
+            min-height: 180px;
         }
-        
+
         #right-column #timer-section {
             flex: 0 0 auto;
         }
@@ -167,7 +282,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
-            background: transparent; 
+            background: transparent;
             margin-bottom: 2px;
         }
 
@@ -184,11 +299,11 @@
             margin-top: 16px;
         }
 
-        .adaptive-button { 
-            font-size: 16px; 
-            padding-block: 16px; 
-            border-radius: 0.75rem; 
-            white-space: nowrap; 
+        .adaptive-button {
+            font-size: 16px;
+            padding-block: 16px;
+            border-radius: 0.75rem;
+            white-space: nowrap;
             transition: padding 0.2s ease, font-size 0.2s ease, border-radius 0.2s ease;
         }
 
@@ -200,17 +315,52 @@
             }
         }
 
-        #pdf-viewer-container { 
-            flex: 1; min-height: 0; background: #e2e8f0; border-radius: 0.75rem;
+        #pdf-viewer-container {
+            flex: 1;
+            min-height: 0;
+            background: #e2e8f0;
+            border-radius: 0.75rem;
             box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
-        
-        #pdf-canvas { max-width: 100%; max-height: 100%; display: block; background: white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); object-fit: contain; }
 
-        #resizer { width: 12px; margin: 0 -4px; z-index: 40; cursor: col-resize; display: flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
-        #resizer-bar { width: 4px; height: 40px; background-color: #d1d5db; border-radius: 99px; transition: background-color 0.2s, height 0.2s; }
-        #resizer:hover #resizer-bar, body.resizing #resizer-bar { background-color: #6366f1; height: 60px; }
+        #pdf-canvas {
+            max-width: 100%;
+            max-height: 100%;
+            display: block;
+            background: white;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            object-fit: contain;
+        }
+
+        #resizer {
+            width: 12px;
+            margin: 0 -4px;
+            z-index: 40;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        #resizer-bar {
+            width: 4px;
+            height: 40px;
+            background-color: #d1d5db;
+            border-radius: 99px;
+            transition: background-color 0.2s, height 0.2s;
+        }
+
+        #resizer:hover #resizer-bar,
+        body.resizing #resizer-bar {
+            background-color: #6366f1;
+            height: 60px;
+        }
 
         .layout-btn {
             width: 40px;
@@ -224,18 +374,25 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .layout-btn:hover { background-color: #f3f4f6; color: #4338ca; }
-        .layout-btn.active { 
-            background-color: #4f46e5; 
-            color: white; 
-            border-color: #4f46e5; 
-            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3); 
+
+        .layout-btn:hover {
+            background-color: #f3f4f6;
+            color: #4338ca;
         }
 
-        .panel-container { container-type: inline-size; }
-        
+        .layout-btn.active {
+            background-color: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+        }
+
+        .panel-container {
+            container-type: inline-size;
+        }
+
         /* Grelha Adaptativa para os botões laterais */
-        .adaptive-grid { 
+        .adaptive-grid {
             display: grid;
             grid-template-columns: repeat(var(--grid-cols, 2), 1fr);
             gap: 0.5rem;
@@ -248,27 +405,51 @@
         }
 
         @container (max-width: 240px) {
-            .custom-timer-controls { flex-direction: column !important; align-items: stretch !important; gap: 0.5rem !important; }
-            .custom-timer-btn { width: 100% !important; margin-top: 0 !important; padding-block: 8px !important; }
+            .custom-timer-controls {
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 0.5rem !important;
+            }
+
+            .custom-timer-btn {
+                width: 100% !important;
+                margin-top: 0 !important;
+                padding-block: 8px !important;
+            }
         }
 
         @media (max-width: 1023px) {
-            #main-layout { flex-direction: column; gap: 0.5rem; }
-            #left-column, #right-column { width: 100% !important; height: 50%; }
-            #resizer { display: none !important; }
+            #main-layout {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            #left-column,
+            #right-column {
+                width: 100% !important;
+                height: 50%;
+            }
+
+            #resizer {
+                display: none !important;
+            }
         }
     </style>
 </head>
+
 <body data-pdf="hidden" data-user="admin" data-layout="both" data-initialized="false">
 
     <!-- CABEÇALHOS -->
     <div class="flex flex-col lg:flex-row gap-3 p-2 md:p-3 pb-0 shrink-0">
-        
-        <div id="real-time-panel" class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-indigo-600 flex items-center justify-center lg:w-80 shrink-0">
-            <span id="clock-display" class="font-mono font-black text-4xl tracking-tighter tabular-nums text-indigo-700">00:00:00</span>
+
+        <div id="real-time-panel"
+            class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-indigo-600 flex items-center justify-center lg:w-80 shrink-0">
+            <span id="clock-display"
+                class="font-mono font-black text-4xl tracking-tighter tabular-nums text-indigo-700">00:00:00</span>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-indigo-500 flex items-center justify-between gap-4 flex-1 overflow-hidden">
+        <div
+            class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-indigo-500 flex items-center justify-between gap-4 flex-1 overflow-hidden">
             <div class="flex items-center gap-3 shrink-0">
                 <div id="stats-container" class="hidden items-center gap-2 border-r border-gray-100 pr-3">
                     <div title="Controladores Ligados" class="flex items-center gap-1">
@@ -282,50 +463,88 @@
                 </div>
                 <div>
                     <h1 class="text-sm font-bold text-gray-800 leading-tight text-nowrap">AM Esposende</h1>
-                    <span id="role-badge" class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter">Local</span>
+                    <span id="role-badge"
+                        class="text-[8px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-tighter">Local</span>
                 </div>
             </div>
 
-            <div id="viewer-layout-panel" class="hidden flex-row items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100 ml-auto shrink-0 flex-nowrap">
+            <div id="viewer-layout-panel"
+                class="hidden flex-row items-center gap-1 bg-gray-50 p-1 rounded-xl border border-gray-100 ml-auto shrink-0 flex-nowrap">
                 <button onclick="setViewerLayout('both')" title="Mostrar Ambos" class="layout-btn active rounded-lg">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="shrink-0">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <path d="M3 12h18" />
+                    </svg>
                 </button>
-                <button onclick="setViewerLayout('pdf-only')" title="Apenas Apresentação (PDF)" class="layout-btn rounded-lg">
-                    <svg xmlns="http://www.w3.org/2001/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <button onclick="setViewerLayout('pdf-only')" title="Apenas Apresentação (PDF)"
+                    class="layout-btn rounded-lg">
+                    <svg xmlns="http://www.w3.org/2001/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="shrink-0">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                        <polyline points="14 2 14 8 20 8" />
+                    </svg>
                 </button>
                 <button onclick="setViewerLayout('timer-only')" title="Apenas Relógio" class="layout-btn rounded-lg">
-                    <svg xmlns="http://www.w3.org/2001/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <svg xmlns="http://www.w3.org/2001/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="shrink-0">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
                 </button>
             </div>
-            
+
             <div id="pdf-master-controls" class="flex items-center gap-3 shrink-0 ml-auto">
                 <div id="pdf-upload-container" class="view-only-hidden">
-                    <label for="pdf-input" class="text-[10px] font-black text-indigo-600 uppercase cursor-pointer bg-indigo-50 px-3 h-9 flex items-center justify-center rounded-lg border border-indigo-100 hover:bg-indigo-100 transition text-center min-w-[60px]">
+                    <label for="pdf-input"
+                        class="text-[10px] font-black text-indigo-600 uppercase cursor-pointer bg-indigo-50 px-3 h-9 flex items-center justify-center rounded-lg border border-indigo-100 hover:bg-indigo-100 transition text-center min-w-[60px]">
                         PDF
                     </label>
-                    <input type="file" id="pdf-input" accept="application/pdf" class="hidden" onchange="handlePdfUpload(event)">
+                    <input type="file" id="pdf-input" accept="application/pdf" class="hidden"
+                        onchange="handlePdfUpload(event)">
                 </div>
-                <button id="btn-header-pdf-toggle" onclick="sendAction('togglePdf')" class="view-only-hidden w-9 h-9 flex items-center justify-center bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
-                    <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <button id="btn-header-pdf-toggle" onclick="sendAction('togglePdf')"
+                    class="view-only-hidden w-9 h-9 flex items-center justify-center bg-indigo-600 text-white rounded-lg shadow hover:bg-indigo-700 transition">
+                    <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round" class="shrink-0">
+                        <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                        <circle cx="12" cy="12" r="3" />
+                    </svg>
                 </button>
             </div>
         </div>
 
-        <div id="network-panel" class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-blue-600 flex items-center justify-between gap-4 lg:w-80 shrink-0 text-nowrap">
+        <div id="network-panel"
+            class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-blue-600 flex items-center justify-between gap-4 lg:w-80 shrink-0 text-nowrap">
             <div id="room-code-display" class="hidden flex-col gap-1 overflow-hidden min-w-[120px]">
-                <div class="flex items-center justify-between gap-2 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg font-mono text-xs w-full">
+                <div
+                    class="flex items-center justify-between gap-2 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg font-mono text-xs w-full">
                     <span class="text-[10px] text-blue-600 font-bold uppercase truncate shrink-0">SALA</span>
                     <div class="flex items-center gap-2">
                         <span id="room-id-value" class="text-blue-600 font-bold select-all cursor-pointer">----</span>
-                        <button onclick="toggleQRModal()" class="view-only-hidden bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black shrink-0">QR</button>
+                        <button onclick="toggleQRModal()"
+                            class="view-only-hidden bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded text-[10px] font-black shrink-0">QR</button>
                     </div>
                 </div>
-                <div id="controller-pin-display" class="hidden flex items-center justify-between gap-2 bg-green-50 border border-green-100 px-2 py-1 rounded-lg font-mono text-xs w-full">
+                <div id="controller-pin-display"
+                    class="hidden flex items-center justify-between gap-2 bg-green-50 border border-green-100 px-2 py-1 rounded-lg font-mono text-xs w-full">
                     <span class="text-[10px] text-green-600 font-bold uppercase shrink-0 truncate">PIN CTRL</span>
                     <div class="flex items-center gap-2">
-                        <span id="controller-pin-value" class="text-green-700 font-bold select-all cursor-pointer tabular-nums">****</span>
-                        <button onclick="togglePinVisibility()" class="text-green-600 hover:text-green-800 focus:outline-none view-only-hidden shrink-0 flex items-center justify-center" title="Ver/Ocultar PIN">
-                            <svg id="pin-eye-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <span id="controller-pin-value"
+                            class="text-green-700 font-bold select-all cursor-pointer tabular-nums">****</span>
+                        <button onclick="togglePinVisibility()"
+                            class="text-green-600 hover:text-green-800 focus:outline-none view-only-hidden shrink-0 flex items-center justify-center"
+                            title="Ver/Ocultar PIN">
+                            <svg id="pin-eye-icon" xmlns="http://www.w3.org/2000/svg" width="12" height="12"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
                         </button>
                     </div>
                 </div>
@@ -333,39 +552,58 @@
 
             <div id="action-container" class="flex flex-col items-center gap-1.5 shrink-0 ml-auto text-nowrap">
                 <div class="flex items-center gap-2">
-                    <button id="btn-create-room" onclick="hostRoom()" class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-blue-700 transition uppercase truncate">Criar Sala</button>
+                    <button id="btn-create-room" onclick="hostRoom()"
+                        class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-blue-700 transition uppercase truncate">Criar
+                        Sala</button>
                     <div id="join-panel" class="flex gap-1">
-                        <input type="text" id="join-id-input" maxlength="10" placeholder="CÓDIGO" class="px-2 py-2 border border-gray-200 rounded-lg w-20 text-[10px] text-center uppercase outline-none focus:border-blue-500 bg-gray-50" onkeydown="if(event.key === 'Enter') joinRoom()">
-                        <button onclick="joinRoom()" class="px-3 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 uppercase truncate">Ligar</button>
+                        <input type="text" id="join-id-input" maxlength="10" placeholder="CÓDIGO"
+                            class="px-2 py-2 border border-gray-200 rounded-lg w-20 text-[10px] text-center uppercase outline-none focus:border-blue-500 bg-gray-50"
+                            onkeydown="if(event.key === 'Enter') joinRoom()">
+                        <button onclick="joinRoom()"
+                            class="px-3 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 uppercase truncate">Ligar</button>
                     </div>
                     <!-- Ordem: LIGAR à esquerda de FECHAR/SAIR -->
-                    <button id="btn-manual-connect" onclick="manualReconnect()" class="hidden px-4 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 transition uppercase truncate">Ligar</button>
-                    <button id="btn-close-room" onclick="closeRoom()" class="hidden px-4 py-2 bg-red-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-red-700 transition uppercase text-[9px] truncate">Fechar</button>
-                    <button id="btn-leave-room" onclick="leaveRoom()" class="hidden px-4 py-2 bg-orange-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-orange-700 transition uppercase truncate">Sair</button>
+                    <button id="btn-manual-connect" onclick="manualReconnect()"
+                        class="hidden px-4 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 transition uppercase truncate">Ligar</button>
+                    <button id="btn-close-room" onclick="closeRoom()"
+                        class="hidden px-4 py-2 bg-red-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-red-700 transition uppercase text-[9px] truncate">Fechar</button>
+                    <button id="btn-leave-room" onclick="leaveRoom()"
+                        class="hidden px-4 py-2 bg-orange-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-orange-700 transition uppercase truncate">Sair</button>
                 </div>
-                
+
                 <div class="flex items-center gap-1.5">
                     <div id="connection-indicator" class="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
-                    <p id="sync-status-text" class="text-[8px] text-gray-400 uppercase font-black italic tracking-wider text-nowrap truncate">Sem Ligação</p>
+                    <p id="sync-status-text"
+                        class="text-[8px] text-gray-400 uppercase font-black italic tracking-wider text-nowrap truncate">
+                        Sem Ligação</p>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- ECRÃ DE BOAS-VINDAS -->
-    <div id="welcome-section" class="flex-1 flex flex-col items-center justify-center p-2 sm:p-8 text-center animate-in fade-in duration-700 overflow-y-auto">
-        <div class="bg-white p-6 sm:p-12 rounded-3xl sm:rounded-[3rem] shadow-xl border border-gray-100 max-w-[95vw] sm:max-w-2xl w-full space-y-4 sm:space-y-6">
-            <div class="w-16 h-16 sm:w-24 sm:h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto shadow-inner shrink-0">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 sm:w-12 sm:h-12 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 21h18M3 7l9-4 9 4M4 7v14M20 7v14M9 21v-9h6v9M8 7v14M16 7v14M12 11h.01" />
+    <div id="welcome-section"
+        class="flex-1 flex flex-col items-center justify-center p-2 sm:p-8 text-center animate-in fade-in duration-700 overflow-y-auto">
+        <div
+            class="bg-white p-6 sm:p-12 rounded-3xl sm:rounded-[3rem] shadow-xl border border-gray-100 max-w-[95vw] sm:max-w-2xl w-full space-y-4 sm:space-y-6">
+            <div
+                class="w-16 h-16 sm:w-24 sm:h-24 bg-indigo-50 rounded-full flex items-center justify-center mx-auto shadow-inner shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 sm:w-12 sm:h-12 text-indigo-600" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 21h18M3 7l9-4 9 4M4 7v14M20 7v14M9 21v-9h6v9M8 7v14M16 7v14M12 11h.01" />
                 </svg>
             </div>
-            <h2 class="text-lg sm:text-2xl md:text-4xl font-black text-gray-800 leading-tight tracking-tight uppercase italic break-words">
+            <h2
+                class="text-lg sm:text-2xl md:text-4xl font-black text-gray-800 leading-tight tracking-tight uppercase italic break-words">
                 Assembleia Municipal<br><span class="text-indigo-600 not-italic">Esposende</span>
             </h2>
             <div class="h-1 w-12 sm:w-20 bg-indigo-200 mx-auto rounded-full"></div>
-            <p class="text-gray-400 font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs truncate">Sistema de Gestão</p>
-            <p class="text-[11px] sm:text-sm text-gray-400 pt-2 sm:pt-4">Crie uma nova sala ou introduza o código para começar.</p>
+            <p
+                class="text-gray-400 font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs truncate">
+                Sistema de Gestão</p>
+            <p class="text-[11px] sm:text-sm text-gray-400 pt-2 sm:pt-4">Crie uma nova sala ou introduza o código para
+                começar.</p>
         </div>
     </div>
 
@@ -374,32 +612,46 @@
         <div id="left-column">
             <div id="left-content-area" class="flex-1 flex flex-col min-h-0">
                 <div id="pdf-viewer-container" class="relative">
-                    <p id="pdf-waiting-text" class="absolute font-bold text-gray-400 z-20 bg-white/90 p-4 rounded-xl shadow-lg">Carregue um PDF para iniciar...</p>
+                    <p id="pdf-waiting-text"
+                        class="absolute font-bold text-gray-400 z-20 bg-white/90 p-4 rounded-xl shadow-lg">Carregue um
+                        PDF para iniciar...</p>
                     <canvas id="pdf-canvas" class="mx-auto rounded bg-white"></canvas>
                 </div>
 
-                <div id="timer-section" class="bg-white rounded-2xl shadow-lg p-4 md:p-6 border-b-4 border-blue-800 relative overflow-hidden shrink-0">
+                <div id="timer-section"
+                    class="bg-white rounded-2xl shadow-lg p-4 md:p-6 border-b-4 border-blue-800 relative overflow-hidden shrink-0">
                     <div class="timer-strip-description">
-                        <div id="current-subject" class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center w-full px-4 truncate h-4"></div>
+                        <div id="current-subject"
+                            class="text-[9px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center w-full px-4 truncate h-4">
+                        </div>
                     </div>
-                    
+
                     <div class="timer-strip-display">
                         <svg viewBox="0 0 300 100" class="w-full h-full max-h-[120px]">
-                            <text id="timer-display" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="'Inter', sans-serif" font-weight="900" fill="#1f2937" style="font-size: 85px; font-variant-numeric: tabular-nums;">00:00</text>
+                            <text id="timer-display" x="50%" y="55%" dominant-baseline="middle" text-anchor="middle"
+                                font-family="'Inter', sans-serif" font-weight="900" fill="#1f2937"
+                                style="font-size: 85px; font-variant-numeric: tabular-nums;">00:00</text>
                         </svg>
                     </div>
 
-                    <div id="control-buttons" class="view-only-hidden timer-strip-buttons flex gap-2 w-full max-w-lg shrink-0 mx-auto">
-                        <button id="start-btn" onclick="sendAction('toggle')" class="flex-[2] adaptive-button text-white font-bold shadow-md active:scale-95 transition-none">INICIAR</button>
-                        <button onclick="sendAction('reset')" class="flex-[1] adaptive-button bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 active:scale-95 transition-none">RESET</button>
+                    <div id="control-buttons"
+                        class="view-only-hidden timer-strip-buttons flex gap-2 w-full max-w-lg shrink-0 mx-auto">
+                        <button id="start-btn" onclick="sendAction('toggle')"
+                            class="flex-[2] adaptive-button text-white font-bold shadow-md active:scale-95 transition-none">INICIAR</button>
+                        <button onclick="sendAction('reset')"
+                            class="flex-[1] adaptive-button bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 active:scale-95 transition-none">RESET</button>
                     </div>
                 </div>
             </div>
-            
-            <div id="pdf-controls" class="bg-white rounded-xl shadow-sm p-3 flex justify-center items-center gap-4 border border-gray-100 shrink-0">
-                <button onclick="sendAction('prevPdfPage')" class="px-4 py-2 bg-gray-100 hover:bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Anterior</button>
-                <span id="pdf-page-info" class="text-xs font-bold text-gray-600 font-mono min-w-[100px] text-center">Pág. - / -</span>
-                <button onclick="nextPdfPageAction()" class="px-4 py-2 bg-gray-100 hover:bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Seguinte</button>
+
+            <div id="pdf-controls"
+                class="bg-white rounded-xl shadow-sm p-3 flex justify-center items-center gap-4 border border-gray-100 shrink-0">
+                <button onclick="sendAction('prevPdfPage')"
+                    class="px-4 py-2 bg-gray-100 hover:bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Anterior</button>
+                <span id="pdf-page-info"
+                    class="text-xs font-bold text-gray-600 font-mono min-w-[100px] text-center">Pág. - / -</span>
+                <button onclick="nextPdfPageAction()"
+                    class="px-4 py-2 bg-gray-100 hover:bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Seguinte</button>
             </div>
         </div>
 
@@ -410,27 +662,35 @@
         <div id="right-column" class="panel-container">
             <div id="side-panel-wrapper" class="flex-1 flex flex-col gap-3 min-h-0 overflow-y-auto pr-1 pb-2 relative">
                 <div id="side-panel" class="view-only-hidden flex flex-col gap-3">
-                    
+
                     <!-- Contentor para a Geração Dinâmica de Grupos e Botões de Tempo -->
                     <div id="dynamic-groups-container" class="flex flex-col gap-3"></div>
 
                     <div class="bg-white rounded-xl shadow-sm p-3 border border-gray-100 shrink-0">
-                        <h2 class="text-[9px] font-black text-gray-400 uppercase mb-2 tracking-widest flex items-center gap-2">
+                        <h2
+                            class="text-[9px] font-black text-gray-400 uppercase mb-2 tracking-widest flex items-center gap-2">
                             <span class="w-1 h-1 bg-green-500 rounded-full"></span> TEMPO PERSONALIZADO
                         </h2>
                         <div class="flex items-start gap-2 custom-timer-controls">
                             <div class="flex-1 flex gap-1.5 items-start w-full">
                                 <div class="flex-1 flex flex-col">
-                                    <input type="number" id="custom-min" min="0" max="99" class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all" placeholder="00">
-                                    <span class="text-[8px] font-black text-gray-400 uppercase text-center mt-1">Min</span>
+                                    <input type="number" id="custom-min" min="0" max="99"
+                                        class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all"
+                                        placeholder="00">
+                                    <span
+                                        class="text-[8px] font-black text-gray-400 uppercase text-center mt-1">Min</span>
                                 </div>
                                 <span class="text-xs font-bold text-gray-400 mt-2">:</span>
                                 <div class="flex-1 flex flex-col">
-                                    <input type="number" id="custom-sec" min="0" max="59" class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all" placeholder="00">
-                                    <span class="text-[8px] font-black text-gray-400 uppercase text-center mt-1">Seg</span>
+                                    <input type="number" id="custom-sec" min="0" max="59"
+                                        class="w-full text-center p-2 bg-gray-50 border border-gray-200 rounded-lg text-xs outline-none focus:border-green-500 font-bold transition-all"
+                                        placeholder="00">
+                                    <span
+                                        class="text-[8px] font-black text-gray-400 uppercase text-center mt-1">Seg</span>
                                 </div>
                             </div>
-                            <button onclick="handleCustomTimer()" class="custom-timer-btn px-4 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 transition uppercase shrink-0 mt-0">Definir</button>
+                            <button onclick="handleCustomTimer()"
+                                class="custom-timer-btn px-4 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 transition uppercase shrink-0 mt-0">Definir</button>
                         </div>
                     </div>
                 </div>
@@ -439,23 +699,32 @@
     </div>
 
     <!-- MODAIS -->
-    <div id="alert-box" class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white px-10 py-8 rounded-3xl shadow-2xl animate-pulse font-black text-3xl z-50 text-center border-4 border-white">TEMPO ESGOTADO!</div>
-    
-    <div id="qr-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm" onclick="toggleQRModal()">
-        <div class="bg-white p-6 rounded-3xl shadow-2xl text-center space-y-4 max-sm w-full mx-4 border border-gray-100" onclick="event.stopPropagation()">
+    <div id="alert-box"
+        class="hidden fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-600 text-white px-10 py-8 rounded-3xl shadow-2xl animate-pulse font-black text-3xl z-50 text-center border-4 border-white">
+        TEMPO ESGOTADO!</div>
+
+    <div id="qr-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center backdrop-blur-sm"
+        onclick="toggleQRModal()">
+        <div class="bg-white p-6 rounded-3xl shadow-2xl text-center space-y-4 max-sm w-full mx-4 border border-gray-100"
+            onclick="event.stopPropagation()">
             <h3 class="font-bold text-gray-800 text-lg">Digitalizar para Ligar</h3>
             <div id="qrcode" class="flex justify-center p-4 bg-white border border-gray-50 rounded-xl mx-auto"></div>
             <div class="space-y-3">
                 <div class="master-only-hidden flex items-center gap-2 justify-center">
                     <input type="checkbox" id="qr-include-pin" class="rounded text-indigo-600" onchange="refreshQR()">
-                    <label for="qr-include-pin" class="text-[10px] text-gray-500 font-bold uppercase">Incluir PIN de Controlo no QR</label>
+                    <label for="qr-include-pin" class="text-[10px] text-gray-500 font-bold uppercase">Incluir PIN de
+                        Controlo no QR</label>
                 </div>
                 <div id="qr-edit-area" class="view-only-hidden text-left space-y-1">
-                    <label class="text-[9px] font-black text-gray-400 uppercase px-1">Endereço de Rede (Opcional)</label>
-                    <input type="text" id="qr-url-input" value="" placeholder="" class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500 transition-colors" oninput="refreshQR()">
+                    <label class="text-[9px] font-black text-gray-400 uppercase px-1">Endereço de Rede
+                        (Opcional)</label>
+                    <input type="text" id="qr-url-input" value="" placeholder=""
+                        class="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs outline-none focus:border-indigo-500 transition-colors"
+                        oninput="refreshQR()">
                 </div>
             </div>
-            <button onclick="toggleQRModal()" class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition">Fechar</button>
+            <button onclick="toggleQRModal()"
+                class="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition">Fechar</button>
         </div>
     </div>
 
@@ -552,7 +821,7 @@
             timeLeft: 120,
             initialTime: 120,
             isRunning: false,
-            subject: AM_CONFIG.messages.defaultSubject, 
+            subject: AM_CONFIG.messages.defaultSubject,
             pdfPage: 1,
             pdfTotalPages: 0,
             isPdfVisible: false,
@@ -561,19 +830,19 @@
             controllerPin: null
         };
 
-        let viewerLayoutMode = 'both'; 
+        let viewerLayoutMode = 'both';
         let peer = null, isHost = true, isController = true, hostConnection = null, clientConnections = [];
         let pdfDoc = null, currentPdfBuffer = null, isRendering = false, lastRenderedPage = 0;
-        let customPdfWidth = 65; 
+        let customPdfWidth = 65;
         let renderTimeout = null, needsRendering = false;
         let heartbeatInterval = null, watchdogInterval = null, lastHeartbeat = Date.now();
-        let currentRoomId = null, currentPin = null, isConnecting = false, isInitialized = false; 
-        let reconnectTimeout = null, collisionAttempts = 0, connectFailsafeTimeout = null; 
+        let currentRoomId = null, currentPin = null, isConnecting = false, isInitialized = false;
+        let reconnectTimeout = null, collisionAttempts = 0, connectFailsafeTimeout = null;
         let isPinVisible = false;
 
         window.addEventListener('beforeunload', () => {
             if (peer && !peer.destroyed) {
-                try { peer.disconnect(); peer.destroy(); } catch (e) {}
+                try { peer.disconnect(); peer.destroy(); } catch (e) { }
             }
         });
 
@@ -581,7 +850,7 @@
         function renderDynamicGroups(groups) {
             const container = document.getElementById('dynamic-groups-container');
             if (!container) return;
-            
+
             const getColorConfig = (color) => {
                 const colors = {
                     'indigo': { dot: 'bg-indigo-500', btn: 'border hover:bg-indigo-50', label: 'group-hover:text-indigo-700', time: 'text-gray-800', titleText: 'text-indigo-500' },
@@ -606,19 +875,19 @@
                     </h2>
                     <div class="adaptive-grid" style="--grid-cols: ${group.columns || 2}">
                 `;
-                
+
                 group.items.forEach(item => {
                     const m = Math.floor(item.seconds / 60).toString().padStart(2, '0');
                     const s = (item.seconds % 60).toString().padStart(2, '0');
                     const timeStr = `${m}:${s}`;
-                    
+
                     // Escapar apóstrofos que possam existir nos labels da configuração JSON
                     const safeLabel = item.label.replace(/'/g, "\\'");
                     const actionStr = `sendAction('setTimer', {seconds: ${item.seconds}, label: '${safeLabel}'})`;
-                    
+
                     const itemColorName = item.color || group.color || 'blue';
                     const c = getColorConfig(itemColorName);
-                    
+
                     html += `
                     <button onclick="${actionStr}" class="side-btn p-2 rounded-xl transition group flex justify-between items-center overflow-hidden ${c.btn}">
                         <span class="btn-label text-[10px] font-bold truncate ${c.label}">${item.shortLabel}</span>
@@ -626,13 +895,13 @@
                     </button>
                     `;
                 });
-                
+
                 html += `
                     </div>
                 </div>
                 `;
             });
-            
+
             container.innerHTML = html;
         }
 
@@ -646,14 +915,14 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        function statusText(t) { 
+        function statusText(t) {
             const el = document.getElementById('sync-status-text');
-            if (el) el.textContent = t; 
+            if (el) el.textContent = t;
         }
 
         function setConnectionIndicator(status) {
             if (!connectionIndicator) return;
-            switch(status) {
+            switch (status) {
                 case 'online': connectionIndicator.className = "w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"; break;
                 case 'client-ok': connectionIndicator.className = "w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.8)]"; break;
                 case 'connecting': connectionIndicator.className = "w-1.5 h-1.5 rounded-full bg-yellow-400 animate-pulse"; break;
@@ -663,14 +932,14 @@
         }
 
         function cleanupNetwork(keepConnectingState = false) {
-            clearTimeout(reconnectTimeout); 
+            clearTimeout(reconnectTimeout);
             clearTimeout(connectFailsafeTimeout);
             if (heartbeatInterval) clearInterval(heartbeatInterval);
             if (watchdogInterval) clearInterval(watchdogInterval);
-            if (hostConnection) { try { hostConnection.close(); } catch(e){} hostConnection = null; }
-            clientConnections.forEach(c => { try { c.close(); } catch(e){} });
+            if (hostConnection) { try { hostConnection.close(); } catch (e) { } hostConnection = null; }
+            clientConnections.forEach(c => { try { c.close(); } catch (e) { } });
             clientConnections = [];
-            if (peer) { try { peer.disconnect(); peer.destroy(); } catch(e){} peer = null; }
+            if (peer) { try { peer.disconnect(); peer.destroy(); } catch (e) { } peer = null; }
             if (!keepConnectingState) isConnecting = false;
         }
 
@@ -691,46 +960,46 @@
         function hostRoom() {
             if (isConnecting) return;
             isConnecting = true;
-            
-            if (!currentRoomId) { 
-                currentRoomId = Math.floor(1000 + Math.random() * 9000).toString(); 
-                collisionAttempts = 0; 
+
+            if (!currentRoomId) {
+                currentRoomId = Math.floor(1000 + Math.random() * 9000).toString();
+                collisionAttempts = 0;
             }
             if (!appState.controllerPin) appState.controllerPin = Math.floor(1000 + Math.random() * 9000).toString();
-            
+
             statusText("A criar sala...");
             setConnectionIndicator('connecting');
-            cleanupNetwork(true); 
-            
-            connectFailsafeTimeout = setTimeout(() => { 
-                if (isConnecting) { isConnecting = false; hostRoom(); } 
+            cleanupNetwork(true);
+
+            connectFailsafeTimeout = setTimeout(() => {
+                if (isConnecting) { isConnecting = false; hostRoom(); }
             }, 15000);
 
             peer = new Peer('amesp-' + currentRoomId, { secure: true, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
-            
+
             peer.on('open', (id) => {
                 clearTimeout(connectFailsafeTimeout);
                 isHost = true; isController = true; isConnecting = false; isInitialized = true;
-                
+
                 document.getElementById('room-id-value').textContent = currentRoomId;
                 document.getElementById('controller-pin-value').textContent = isPinVisible ? appState.controllerPin : "****";
-                
+
                 document.getElementById('room-code-display').classList.replace('hidden', 'flex');
                 document.getElementById('controller-pin-display').classList.remove('hidden');
                 document.getElementById('btn-create-room').classList.add('hidden');
                 document.getElementById('join-panel').classList.add('hidden');
                 if (btnCloseRoom) btnCloseRoom.classList.remove('hidden');
-                
+
                 generateQRCode(currentRoomId);
                 statusText("Mestre (Online)");
                 setConnectionIndicator('online');
-                
+
                 if (heartbeatInterval) clearInterval(heartbeatInterval);
                 heartbeatInterval = setInterval(() => {
                     clientConnections = clientConnections.filter(c => c.open !== false);
-                    clientConnections.forEach(conn => { try { conn.send({ type: 'heartbeat' }); } catch(e) {} });
+                    clientConnections.forEach(conn => { try { conn.send({ type: 'heartbeat' }); } catch (e) { } });
                 }, 5000);
-                
+
                 applyPermissions(); updateUI();
             });
 
@@ -753,19 +1022,19 @@
 
                 if (err.type === 'unavailable-id') {
                     collisionAttempts++;
-                    if (collisionAttempts <= (AM_CONFIG.ui.maxCollisionAttempts || 15)) { 
+                    if (collisionAttempts <= (AM_CONFIG.ui.maxCollisionAttempts || 15)) {
                         statusText("A recuperar sala...");
-                        if (peer) { try { peer.destroy(); } catch(e){} peer = null; }
-                        reconnectTimeout = setTimeout(hostRoom, 3000); 
-                    } else { 
+                        if (peer) { try { peer.destroy(); } catch (e) { } peer = null; }
+                        reconnectTimeout = setTimeout(hostRoom, 3000);
+                    } else {
                         statusText("Nova sala...");
-                        currentRoomId = null; 
-                        reconnectTimeout = setTimeout(hostRoom, 1000); 
+                        currentRoomId = null;
+                        reconnectTimeout = setTimeout(hostRoom, 1000);
                     }
-                } else if (err.type === 'network' || err.type === 'server-error') { 
+                } else if (err.type === 'network' || err.type === 'server-error') {
                     statusText("Servidor ocupado...");
-                    setConnectionIndicator('error'); 
-                    reconnectTimeout = setTimeout(() => { hostRoom(); }, 3000); 
+                    setConnectionIndicator('error');
+                    reconnectTimeout = setTimeout(() => { hostRoom(); }, 3000);
                 } else {
                     statusText("Erro Crítico.");
                     setConnectionIndicator('error');
@@ -780,24 +1049,26 @@
                     const role = (providedPin && providedPin.toString() === appState.controllerPin.toString()) ? 'controller' : 'viewer';
                     conn.metadata = { ...conn.metadata, role: role };
                     clientConnections.push(conn);
-                    conn.send({ type: 'init', role: role, state: appState });
-                    
+                    const safeState = { ...appState };
+                    delete safeState.controllerPin;
+                    conn.send({ type: 'init', role: role, state: safeState });
+
                     if (currentPdfBuffer) {
                         setTimeout(() => { if (conn.open) conn.send({ type: 'pdf-file', file: currentPdfBuffer }); }, 1000);
                     }
                     updateTerminalStats();
                 });
-                
+
                 conn.on('data', data => {
                     if (conn.metadata.role !== 'controller') return;
                     if (data.type === 'command') processCommand(data.action, data.payload);
                     else if (data.type === 'pdf-file') {
-                        currentPdfBuffer = data.file; 
-                        appState.isPdfVisible = true; 
-                        appState.pdfPage = 1; 
-                        loadPdf(data.file); 
-                        clientConnections.forEach(c => { 
-                            if (c && c.open && c.peer !== conn.peer) c.send({ type: 'pdf-file', file: data.file }); 
+                        currentPdfBuffer = data.file;
+                        appState.isPdfVisible = true;
+                        appState.pdfPage = 1;
+                        loadPdf(data.file);
+                        clientConnections.forEach(c => {
+                            if (c && c.open && c.peer !== conn.peer) c.send({ type: 'pdf-file', file: data.file });
                         });
                         broadcastState();
                     }
@@ -824,37 +1095,37 @@
             if (isConnecting) return;
             const raw = document.getElementById('join-id-input').value.trim();
             if (raw.length >= 4) {
-                if (raw.includes('-')) { 
-                    const parts = raw.split('-'); 
-                    currentRoomId = parts[0]; 
-                    currentPin = parts[1]; 
-                } else if (raw.length > 4) { 
-                    currentRoomId = raw.substring(0, 4); 
-                    currentPin = raw.substring(4); 
-                } else { 
-                    currentRoomId = raw; 
+                if (raw.includes('-')) {
+                    const parts = raw.split('-');
+                    currentRoomId = parts[0];
+                    currentPin = parts[1];
+                } else if (raw.length > 4) {
+                    currentRoomId = raw.substring(0, 4);
+                    currentPin = raw.substring(4);
+                } else {
+                    currentRoomId = raw;
                 }
             }
-            if (!currentRoomId) return; 
-            
-            isConnecting = true; 
-            statusText("A ligar Sala..."); 
-            setConnectionIndicator('connecting'); 
-            cleanupNetwork(true); 
-            
-            connectFailsafeTimeout = setTimeout(() => { 
-                if (isConnecting) { isConnecting = false; joinRoom(); } 
+            if (!currentRoomId) return;
+
+            isConnecting = true;
+            statusText("A ligar Sala...");
+            setConnectionIndicator('connecting');
+            cleanupNetwork(true);
+
+            connectFailsafeTimeout = setTimeout(() => {
+                if (isConnecting) { isConnecting = false; joinRoom(); }
             }, 15000);
-            
+
             peer = new Peer({ secure: true, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] } });
-            
-            peer.on('open', () => { 
-                clearTimeout(connectFailsafeTimeout); 
-                isConnecting = false; 
-                attemptConnectionToHost(); 
+
+            peer.on('open', () => {
+                clearTimeout(connectFailsafeTimeout);
+                isConnecting = false;
+                attemptConnectionToHost();
             });
-            
-            peer.on('error', (err) => { 
+
+            peer.on('error', (err) => {
                 clearTimeout(connectFailsafeTimeout);
                 isConnecting = false;
                 clearTimeout(reconnectTimeout);
@@ -868,9 +1139,9 @@
                         } else { joinRoom(); }
                     }, 3000);
                 } else {
-                    statusText("Erro Crítico."); 
-                    setConnectionIndicator('error'); 
-                    reconnectTimeout = setTimeout(joinRoom, 5000); 
+                    statusText("Erro Crítico.");
+                    setConnectionIndicator('error');
+                    reconnectTimeout = setTimeout(joinRoom, 5000);
                 }
                 updateUI();
             });
@@ -878,9 +1149,9 @@
 
         function attemptConnectionToHost() {
             if (!peer || peer.destroyed) return;
-            statusText("A ligar ao Mestre..."); 
+            statusText("A ligar ao Mestre...");
             setConnectionIndicator('connecting');
-            if (hostConnection) { try { hostConnection.close(); } catch(e){} hostConnection = null; }
+            if (hostConnection) { try { hostConnection.close(); } catch (e) { } hostConnection = null; }
             const conn = peer.connect('amesp-' + currentRoomId, { reliable: true, metadata: { pin: currentPin ? currentPin.toString() : null } });
             setupHostConnection(conn);
         }
@@ -888,72 +1159,72 @@
         function setupHostConnection(conn) {
             hostConnection = conn;
             clearTimeout(reconnectTimeout);
-            
+
             const handshakeTimeout = setTimeout(() => {
                 if (!isInitialized) attemptConnectionToHost();
             }, 8000);
 
             hostConnection.on('open', () => {
                 clearTimeout(handshakeTimeout);
-                isHost = false; 
+                isHost = false;
                 document.getElementById('room-id-value').textContent = currentRoomId;
                 document.getElementById('room-code-display').classList.replace('hidden', 'flex');
                 document.getElementById('btn-create-room').classList.add('hidden');
                 document.getElementById('join-panel').classList.add('hidden');
                 if (btnLeaveRoom) btnLeaveRoom.classList.remove('hidden');
-                
+
                 setConnectionIndicator('client-ok');
                 statusText("A sincronizar...");
-                
+
                 lastHeartbeat = Date.now();
                 if (watchdogInterval) clearInterval(watchdogInterval);
                 watchdogInterval = setInterval(() => {
                     if (isInitialized && Date.now() - lastHeartbeat > 10000 && !isConnecting && !isHost) {
-                        statusText("A tentar reconectar..."); 
-                        joinRoom(); 
+                        statusText("A tentar reconectar...");
+                        joinRoom();
                     }
                 }, 3000);
                 updateUI();
             });
-            
+
             hostConnection.on('data', (data) => {
                 lastHeartbeat = Date.now();
                 if (data.type === 'heartbeat') return;
-                
-                if (data.type === 'init') { 
-                    isInitialized = true; 
-                    isController = (data.role === 'controller'); 
-                    Object.assign(appState, data.state); 
-                    applyPermissions(); 
-                    updateUI(); 
+
+                if (data.type === 'init') {
+                    isInitialized = true;
+                    isController = (data.role === 'controller');
+                    Object.assign(appState, data.state);
+                    applyPermissions();
+                    updateUI();
                     statusText(isController ? "Controlo OK" : "Visualização OK");
                 }
-                
-                if (data.type === 'state') { 
+
+                if (data.type === 'state') {
                     const prevPage = appState.pdfPage;
                     const prevVis = appState.isPdfVisible;
-                    Object.assign(appState, data.data); 
-                    updateUI(); 
+                    Object.assign(appState, data.data);
+                    updateUI();
                     if (appState.isPdfVisible && (prevPage !== appState.pdfPage || !prevVis)) {
                         setTimeout(() => renderPage(appState.pdfPage), 100);
                     }
                 }
-                
-                if (data.type === 'pdf-file') { 
-                    currentPdfBuffer = data.file; 
-                    loadPdf(data.file); 
+
+                if (data.type === 'pdf-file') {
+                    currentPdfBuffer = data.file;
+                    loadPdf(data.file);
                 }
-                
+
                 if (data.type === 'room-closing') { location.reload(); }
             });
-            
-            hostConnection.on('close', () => { 
-                if (!isHost) { 
-                    statusText("Ligação Perdida"); 
-                    applyPermissions(); 
+
+            hostConnection.on('close', () => {
+                if (!isHost) {
+                    statusText("Ligação Perdida");
+                    applyPermissions();
                     clearTimeout(reconnectTimeout);
-                    reconnectTimeout = setTimeout(joinRoom, 2000); 
-                } 
+                    reconnectTimeout = setTimeout(joinRoom, 2000);
+                }
                 updateUI();
             });
         }
@@ -963,11 +1234,11 @@
 
         function manualReconnect() {
             if (!currentRoomId) return;
-            
+
             const maxAttempts = AM_CONFIG.ui.maxManualReconnectAttempts || 5;
             manualRetryCount = 0;
             if (manualRetryTimer) clearTimeout(manualRetryTimer);
-            
+
             const attemptConnect = () => {
                 let hasConnection = false;
                 if (isHost) {
@@ -975,14 +1246,14 @@
                 } else {
                     hasConnection = !!(hostConnection && hostConnection.open);
                 }
-                
+
                 if (hasConnection && manualRetryCount > 0) {
                     manualRetryCount = 0;
                     return;
                 }
-                
+
                 manualRetryCount++;
-                
+
                 if (manualRetryCount > maxAttempts) {
                     statusText("Falha na Ligação");
                     setConnectionIndicator('error');
@@ -995,10 +1266,10 @@
                 statusText(`A ligar... (${manualRetryCount}/${maxAttempts})`);
                 cleanupNetwork(true);
                 if (isHost) hostRoom(); else joinRoom();
-                
-                manualRetryTimer = setTimeout(attemptConnect, AM_CONFIG.ui.manualReconnectDelayMs || 6000); 
+
+                manualRetryTimer = setTimeout(attemptConnect, AM_CONFIG.ui.manualReconnectDelayMs || 6000);
             };
-            
+
             attemptConnect();
         }
 
@@ -1006,19 +1277,19 @@
             clearTimeout(reconnectTimeout);
             if (!currentRoomId || isConnecting) return;
             statusText("Rede detetada...");
-            reconnectTimeout = setTimeout(() => { 
-                if (isHost) hostRoom(); else joinRoom(); 
+            reconnectTimeout = setTimeout(() => {
+                if (isHost) hostRoom(); else joinRoom();
             }, 2000);
         });
-        
-        window.addEventListener('offline', () => { 
-            statusText("Sem Internet"); 
-            setConnectionIndicator('error'); 
+
+        window.addEventListener('offline', () => {
+            statusText("Sem Internet");
+            setConnectionIndicator('error');
         });
 
         function handlePdfUpload(e) {
             const file = e.target.files[0]; if (!file) return;
-            
+
             const maxSizeInBytes = (AM_CONFIG.ui.maxPdfSizeMB || 5) * 1024 * 1024;
             if (file.size > maxSizeInBytes) {
                 const alertBox = document.getElementById('alert-box');
@@ -1036,10 +1307,10 @@
             const reader = new FileReader();
             reader.onload = async (ev) => {
                 const base64String = ev.target.result;
-                currentPdfBuffer = base64String; 
-                appState.isPdfVisible = true; 
+                currentPdfBuffer = base64String;
+                appState.isPdfVisible = true;
                 appState.pdfPage = 1;
-                
+
                 if (!isInitialized) {
                     isInitialized = true;
                     isHost = true;
@@ -1047,19 +1318,19 @@
                     document.getElementById('btn-create-room').classList.add('hidden');
                     document.getElementById('join-panel').classList.add('hidden');
                     if (btnCloseRoom) btnCloseRoom.classList.remove('hidden');
-                    applyPermissions(); 
+                    applyPermissions();
                 }
 
                 await loadPdf(base64String);
-                
+
                 if (isHost && peer) {
-                    clientConnections.forEach(c => { if(c && c.open) c.send({ type: 'pdf-file', file: base64String }); });
+                    clientConnections.forEach(c => { if (c && c.open) c.send({ type: 'pdf-file', file: base64String }); });
                 } else if (hostConnection && hostConnection.open) {
                     hostConnection.send({ type: 'pdf-file', file: base64String });
                 }
                 updateUI(); broadcastState();
             };
-            reader.readAsDataURL(file); 
+            reader.readAsDataURL(file);
         }
 
         async function loadPdf(base64DataUrl) {
@@ -1068,13 +1339,13 @@
                 const binaryString = window.atob(base64);
                 const bytes = new Uint8Array(binaryString.length);
                 for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
-                
+
                 const loadingTask = pdfjsLib.getDocument({ data: bytes });
-                pdfDoc = await loadingTask.promise; 
+                pdfDoc = await loadingTask.promise;
                 appState.pdfTotalPages = pdfDoc.numPages;
                 document.getElementById('pdf-waiting-text').classList.add('hidden');
-                
-                renderPage(appState.pdfPage); 
+
+                renderPage(appState.pdfPage);
                 updateUI();
             } catch (e) { console.error("PDF Erro:", e); }
         }
@@ -1083,42 +1354,42 @@
             if (!pdfDoc || !pdfViewerContainer) return;
             if (isRendering) { needsRendering = true; return; }
             if (pdfViewerContainer.offsetParent === null) { needsRendering = true; return; }
-            
+
             isRendering = true; needsRendering = false;
-            
+
             try {
                 const page = await pdfDoc.getPage(num);
                 const container = pdfViewerContainer;
                 const cw = container.clientWidth - 4, ch = container.clientHeight - 4;
                 if (cw <= 0 || ch <= 0) { isRendering = false; needsRendering = true; return; }
-                
+
                 const viewport_base = page.getViewport({ scale: 1 });
                 const scale = Math.min(cw / viewport_base.width, ch / viewport_base.height);
-                const dpr = Math.min(window.devicePixelRatio || 1, 2); 
+                const dpr = Math.min(window.devicePixelRatio || 1, 2);
                 const viewport = page.getViewport({ scale: scale * dpr });
-                
+
                 const canvas = document.getElementById('pdf-canvas');
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
-                
+
                 if (canvas.width !== viewport.width || canvas.height !== viewport.height) {
                     canvas.width = viewport.width; canvas.height = viewport.height;
                     canvas.style.height = (viewport.height / dpr) + "px";
                     canvas.style.width = (viewport.width / dpr) + "px";
                 }
-                
+
                 await page.render({ canvasContext: ctx, viewport }).promise;
                 lastRenderedPage = num;
                 const info = document.getElementById('pdf-page-info');
                 if (info) info.textContent = `Pág. ${num} / ${appState.pdfTotalPages}`;
-            } catch (err) { console.error("Erro na renderização:", err); } 
+            } catch (err) { console.error("Erro na renderização:", err); }
             finally { isRendering = false; if (needsRendering) renderPage(appState.pdfPage); }
         }
 
         if (pdfViewerContainer) {
             const resizeObserver = new ResizeObserver(() => {
                 if (pdfDoc && appState.isPdfVisible) {
-                    clearTimeout(renderTimeout); 
+                    clearTimeout(renderTimeout);
                     renderTimeout = setTimeout(() => { renderPage(appState.pdfPage); }, 250);
                 }
             });
@@ -1141,8 +1412,8 @@
             else if (action === 'togglePdf') { if (pdfDoc || currentPdfBuffer) appState.isPdfVisible = !appState.isPdfVisible; if (appState.isPdfVisible) needsRender = true; }
             else if (action === 'nextPdfPage') { if (appState.pdfPage < appState.pdfTotalPages) { appState.pdfPage++; needsRender = true; } }
             else if (action === 'prevPdfPage') { if (appState.pdfPage > 1) { appState.pdfPage--; needsRender = true; } }
-            
-            updateUI(); 
+
+            updateUI();
             if (needsRender) setTimeout(() => renderPage(appState.pdfPage), 100);
             broadcastState();
         }
@@ -1157,16 +1428,16 @@
 
         function updateUI() {
             if (!display) return;
-            
+
             const isPdfVisibleGlobal = appState.isPdfVisible;
             const effectiveLayout = isController ? 'both' : viewerLayoutMode;
             const isViewerBoth = !isController && effectiveLayout === 'both';
-            
+
             document.body.setAttribute('data-pdf', isPdfVisibleGlobal ? 'visible' : 'hidden');
             document.body.setAttribute('data-user', isController ? 'admin' : 'viewer');
             document.body.setAttribute('data-layout', effectiveLayout);
             document.body.setAttribute('data-initialized', isInitialized ? 'true' : 'false');
-            
+
             const toggleBtn = document.getElementById('btn-header-pdf-toggle');
             const eyeIcon = document.getElementById('eye-icon');
             if (toggleBtn && eyeIcon) {
@@ -1174,20 +1445,20 @@
                 toggleBtn.disabled = !hasPdf;
                 toggleBtn.style.opacity = hasPdf ? "1" : "0.5";
                 toggleBtn.style.cursor = hasPdf ? "pointer" : "not-allowed";
-                
+
                 if (!hasPdf || !isPdfVisibleGlobal) {
                     eyeIcon.innerHTML = '<path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.52 13.52 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" y1="2" x2="22" y2="22"/>';
                 } else {
                     eyeIcon.innerHTML = '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
                 }
             }
-            
+
             const m = Math.floor(appState.timeLeft / 60), s = appState.timeLeft % 60;
             display.textContent = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             display.setAttribute('fill', (appState.timeLeft <= 10 && appState.timeLeft > 0) ? '#ef4444' : '#1f2937');
             document.getElementById('current-subject').textContent = appState.subject;
             document.getElementById('alert-box').classList.toggle('hidden', appState.timeLeft > 0 || appState.initialTime === 0);
-            
+
             if (startBtn) {
                 const currentStatus = appState.isRunning ? "running" : (appState.timeLeft > 0 && appState.timeLeft < appState.initialTime ? "paused" : "idle");
                 startBtn.textContent = currentStatus === "running" ? "PAUSAR" : (currentStatus === "paused" ? "RETOMAR" : "INICIAR");
@@ -1212,17 +1483,17 @@
             const syncInd = document.getElementById('connection-indicator');
             const netPanel = document.getElementById('network-panel');
             const actionContainer = document.getElementById('action-container');
-            
+
             if (isInitialized && !peer) {
                 if (syncText) syncText.textContent = "Modo Offline";
                 if (syncInd) syncInd.style.opacity = "0";
                 if (netPanel) {
                     netPanel.classList.remove('justify-between', 'justify-center');
-                    netPanel.classList.add('justify-end'); 
+                    netPanel.classList.add('justify-end');
                 }
                 if (actionContainer) {
                     actionContainer.classList.remove('items-center');
-                    actionContainer.classList.add('items-end'); 
+                    actionContainer.classList.add('items-end');
                     const indicatorRow = actionContainer.querySelector('div:last-child');
                     if (indicatorRow) indicatorRow.classList.remove('hidden');
                 }
@@ -1246,7 +1517,7 @@
                 }
                 if (resizer && effectiveLayout === 'both') resizer.classList.remove('hidden');
                 document.documentElement.style.setProperty('--pdf-width', customPdfWidth + '%');
-            } else { 
+            } else {
                 if (leftContentArea && !leftContentArea.contains(timerSection)) {
                     leftContentArea.appendChild(timerSection);
                 }
@@ -1258,50 +1529,56 @@
             const roomIdVal = document.getElementById('room-id-value').textContent;
             const isActuallyHost = (peer && peer.id === 'amesp-' + roomIdVal);
             const panel = document.getElementById('viewer-layout-panel');
-            
-            if (isActuallyHost || !peer) { 
-                roleBadge.textContent = peer ? "Mestre" : "Local"; 
-                isController = true; 
-                isHost = true; 
-            } else { 
-                isHost = false; 
-                roleBadge.textContent = isController ? "Controlo" : "Visualização"; 
+
+            if (isActuallyHost || !peer) {
+                roleBadge.textContent = peer ? "Mestre" : "Local";
+                isController = true;
+                isHost = true;
+            } else {
+                isHost = false;
+                roleBadge.textContent = isController ? "Controlo" : "Visualização";
             }
-            
-            if (isHost || isController) { 
-                panel.classList.add('hidden'); 
-            } else { 
-                if (isInitialized) { 
-                    panel.classList.remove('hidden'); 
-                    panel.classList.add('flex'); 
-                } else { 
-                    panel.classList.add('hidden'); 
-                } 
+
+            if (isHost || isController) {
+                panel.classList.add('hidden');
+            } else {
+                if (isInitialized) {
+                    panel.classList.remove('hidden');
+                    panel.classList.add('flex');
+                } else {
+                    panel.classList.add('hidden');
+                }
             }
-            
+
             document.querySelectorAll('.view-only-hidden').forEach(el => el.classList.toggle('is-viewer', !isController));
             document.querySelectorAll('.master-only-hidden').forEach(el => el.classList.toggle('is-not-master', !isHost));
             updateUI();
         }
 
-        function broadcastState() { if (isHost && peer) clientConnections.forEach(c => { if(c && c.open) c.send({ type: 'state', data: appState }); }); }
+        function broadcastState() {
+            if (isHost && peer) {
+                const safeState = { ...appState };
+                delete safeState.controllerPin;
+                clientConnections.forEach(c => { if (c && c.open) c.send({ type: 'state', data: safeState }); });
+            }
+        }
         function sendAction(action, payload = null) { if (isHost) processCommand(action, payload); else if (hostConnection && hostConnection.open) hostConnection.send({ type: 'command', action, payload }); }
 
-        function closeRoom() { 
-            if (isHost) { 
+        function closeRoom() {
+            if (isHost) {
                 if (peer) {
-                    clientConnections.forEach(conn => { if (conn && conn.open) conn.send({ type: 'room-closing' }); }); 
-                    setTimeout(() => location.reload(), 500); 
+                    clientConnections.forEach(conn => { if (conn && conn.open) conn.send({ type: 'room-closing' }); });
+                    setTimeout(() => location.reload(), 500);
                 } else {
                     location.reload();
                 }
-            } 
+            }
         }
-        
-        function leaveRoom() { 
-            cleanupNetwork(); 
-            isInitialized = false; 
-            location.reload(); 
+
+        function leaveRoom() {
+            cleanupNetwork();
+            isInitialized = false;
+            location.reload();
         }
 
         setInterval(() => { if (isHost && appState.isRunning && appState.timeLeft > 0) { appState.timeLeft--; updateUI(); broadcastState(); } }, 1000);
@@ -1309,49 +1586,50 @@
         if (resizer) {
             let resizing = false;
             resizer.addEventListener('mousedown', (e) => { resizing = true; document.body.classList.add('resizing'); e.preventDefault(); });
-            document.addEventListener('mousemove', (e) => { 
-                if (resizing) { 
-                    let p = (e.clientX / window.innerWidth) * 100; 
+            document.addEventListener('mousemove', (e) => {
+                if (resizing) {
+                    let p = (e.clientX / window.innerWidth) * 100;
                     if (p < 30) p = 30;
                     if (p > 85) p = 85;
                     customPdfWidth = p;
                     document.documentElement.style.setProperty('--pdf-width', p + '%');
-                } 
+                }
             });
             document.addEventListener('mouseup', () => { if (resizing) { resizing = false; document.body.classList.remove('resizing'); } });
         }
 
         function nextPdfPageAction() { sendAction('nextPdfPage'); }
         document.addEventListener('keydown', (e) => { if (!isController || !appState.isPdfVisible || !pdfDoc || e.target.tagName === 'INPUT') return; if (e.key === 'ArrowRight') nextPdfPageAction(); else if (e.key === 'ArrowLeft') sendAction('prevPdfPage'); });
-        
+
         function toggleQRModal() { const modal = document.getElementById('qr-modal'); if (modal) { modal.classList.toggle('hidden'); if (!modal.classList.contains('hidden') && peer) refreshQR(); } }
         function refreshQR() { const id = document.getElementById('room-id-value').textContent; if (id && id !== "----") generateQRCode(id); }
         function generateQRCode(id) {
             const input = document.getElementById('qr-url-input');
             const baseUrl = (input ? input.value.trim() : "") || window.location.href.split('?')[0];
             const finalUrl = baseUrl + "?room=" + id + (document.getElementById('qr-include-pin').checked ? "-" + appState.controllerPin : "");
-            const qrContainer = document.getElementById("qrcode"); 
+            const qrContainer = document.getElementById("qrcode");
             qrContainer.innerHTML = "";
-            new QRCode(qrContainer, { text: finalUrl, width: 180, height: 180, colorDark : "#1f2937", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H });
+            new QRCode(qrContainer, { text: finalUrl, width: 180, height: 180, colorDark: "#1f2937", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
         }
-        
+
         // --- INICIALIZAÇÃO DA INTERFACE COM A CONFIGURAÇÃO JSON ---
-        window.addEventListener('load', () => { 
+        window.addEventListener('load', () => {
             // 1. Aplicar Configurações Visuais e Dinâmicas
             document.getElementById('alert-box').textContent = AM_CONFIG.messages.timeExpired;
             document.getElementById('pdf-waiting-text').textContent = AM_CONFIG.messages.pdfWaiting;
             document.getElementById('custom-min').value = AM_CONFIG.ui.timer.defaultMinutes;
             document.getElementById('custom-sec').value = AM_CONFIG.ui.timer.defaultSeconds;
-            
+
             // 2. Gerar Grupos e Botões
             renderDynamicGroups(AM_CONFIG.groups);
 
             // 3. Processar link de entrada
-            const room = new URLSearchParams(window.location.search).get('room'); 
-            if (room) { document.getElementById('join-id-input').value = room; setTimeout(joinRoom, 1000); } 
-            
-            updateUI(); 
+            const room = new URLSearchParams(window.location.search).get('room');
+            if (room) { document.getElementById('join-id-input').value = room; setTimeout(joinRoom, 1000); }
+
+            updateUI();
         });
     </script>
 </body>
+
 </html>
