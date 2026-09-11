@@ -529,7 +529,7 @@
             <div id="room-code-display" class="hidden flex-col gap-1 overflow-hidden min-w-[120px]">
                 <div
                     class="flex items-center justify-between gap-2 bg-gray-50 border border-gray-100 px-2 py-1 rounded-lg font-mono text-xs w-full">
-                    <span class="text-[10px] text-blue-600 font-bold uppercase truncate shrink-0">SALA</span>
+                    <span class="text-[10px] text-blue-600 font-bold uppercase truncate shrink-0">Sessão</span>
                     <div class="flex items-center gap-2">
                         <span id="room-id-value" class="text-blue-600 font-bold select-all cursor-pointer">----</span>
                         <button onclick="toggleQRModal()"
@@ -560,7 +560,7 @@
                 <div class="flex items-center gap-2">
                     <button id="btn-create-room" onclick="hostRoom()"
                         class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-blue-700 transition uppercase truncate">Criar
-                        Sala</button>
+                        Sessão</button>
                     <div id="join-panel" class="flex gap-1">
                         <input type="text" id="join-id-input" maxlength="10" placeholder="CÓDIGO"
                             class="px-2 py-2 border border-gray-200 rounded-lg w-20 text-[10px] text-center uppercase outline-none focus:border-blue-500 bg-gray-50"
@@ -608,7 +608,7 @@
             <p
                 class="text-gray-400 font-bold uppercase tracking-[0.1em] sm:tracking-[0.2em] text-[10px] sm:text-xs truncate">
                 Sistema de Gestão</p>
-            <p class="text-[11px] sm:text-sm text-gray-400 pt-2 sm:pt-4">Crie uma nova sala ou introduza o código para
+            <p class="text-[11px] sm:text-sm text-gray-400 pt-2 sm:pt-4">Crie uma nova sessão ou introduza o código para
                 começar.</p>
         </div>
     </div>
@@ -973,7 +973,7 @@
             }
             if (!appState.controllerPin) appState.controllerPin = Math.floor(1000 + Math.random() * 9000).toString();
 
-            statusText("A criar sala...");
+            statusText("A criar sessão...");
             setConnectionIndicator('connecting');
             cleanupNetwork(true);
 
@@ -1029,11 +1029,11 @@
                 if (err.type === 'unavailable-id') {
                     collisionAttempts++;
                     if (collisionAttempts <= (AM_CONFIG.ui.maxCollisionAttempts || 15)) {
-                        statusText("A recuperar sala...");
+                        statusText("A recuperar sessão...");
                         if (peer) { try { peer.destroy(); } catch (e) { } peer = null; }
                         reconnectTimeout = setTimeout(hostRoom, 3000);
                     } else {
-                        statusText("Nova sala...");
+                        statusText("Nova sessão...");
                         currentRoomId = null;
                         reconnectTimeout = setTimeout(hostRoom, 1000);
                     }
@@ -1115,7 +1115,7 @@
             if (!currentRoomId) return;
 
             isConnecting = true;
-            statusText("A ligar Sala...");
+            statusText("A ligar à sessão...");
             setConnectionIndicator('connecting');
             cleanupNetwork(true);
 
