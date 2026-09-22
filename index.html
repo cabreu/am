@@ -607,8 +607,8 @@
                     <button id="btn-create-room" type="button" onclick="hostRoom()"
                         class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-blue-700 transition uppercase truncate">Criar
                         Sessão</button>
-                    <div id="join-panel" class="flex gap-1">
-                        <label for="join-id-input" class="sr-only">Código da sessão</label>
+                    <div id="join-panel" class="flex gap-1 items-center">
+                        <label for="join-id-input" class="text-[9px] font-black text-gray-500 uppercase tracking-wide">Código</label>
                         <input type="text" id="join-id-input" maxlength="10" placeholder="CÓDIGO" aria-label="Código da sessão"
                             class="px-2 py-2 border border-gray-200 rounded-lg w-20 text-[10px] text-center uppercase outline-none focus:border-blue-500 bg-gray-50"
                             onkeydown="if(event.key === 'Enter') joinRoom()">
