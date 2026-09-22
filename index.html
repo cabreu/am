@@ -409,6 +409,27 @@
             border: 0;
         }
 
+        .sr-only:focus,
+        .sr-only:focus-visible {
+            position: fixed;
+            top: 0.75rem;
+            left: 0.75rem;
+            z-index: 100;
+            width: auto;
+            height: auto;
+            padding: 0.75rem 1rem;
+            margin: 0;
+            overflow: visible;
+            clip: auto;
+            white-space: normal;
+            background: #1d4ed8;
+            color: #fff;
+            font-weight: 700;
+            text-decoration: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.12);
+        }
+
         button:focus-visible,
         input:focus-visible,
         [role="button"]:focus-visible,
@@ -464,6 +485,7 @@
 </head>
 
 <body data-pdf="hidden" data-user="admin" data-layout="both" data-initialized="false">
+    <a href="#main-content" class="sr-only focus-visible:outline-none">Saltar para o conteúdo principal</a>
 
     <!-- CABEÇALHOS -->
     <div class="flex flex-col lg:flex-row gap-3 p-2 md:p-3 pb-0 shrink-0">
@@ -578,7 +600,7 @@
 
             <div id="action-container" class="flex flex-col items-center gap-1.5 shrink-0 ml-auto text-nowrap">
                 <div class="flex items-center gap-2">
-                    <button id="btn-create-room" onclick="hostRoom()"
+                    <button id="btn-create-room" type="button" onclick="hostRoom()"
                         class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-blue-700 transition uppercase truncate">Criar
                         Sessão</button>
                     <div id="join-panel" class="flex gap-1">
@@ -590,11 +612,11 @@
                             class="px-3 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 uppercase truncate">Ligar</button>
                     </div>
                     <!-- Ordem: LIGAR à esquerda de FECHAR/SAIR -->
-                    <button id="btn-manual-connect" onclick="manualReconnect()"
+                    <button id="btn-manual-connect" type="button" onclick="manualReconnect()"
                         class="hidden px-4 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 transition uppercase truncate">Ligar</button>
-                    <button id="btn-close-room" onclick="closeRoom()"
+                    <button id="btn-close-room" type="button" onclick="closeRoom()"
                         class="hidden px-4 py-2 bg-red-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-red-700 transition uppercase text-[9px] truncate">Fechar</button>
-                    <button id="btn-leave-room" onclick="leaveRoom()"
+                    <button id="btn-leave-room" type="button" onclick="leaveRoom()"
                         class="hidden px-4 py-2 bg-orange-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-orange-700 transition uppercase truncate">Sair</button>
                 </div>
 
@@ -635,6 +657,7 @@
     </div>
 
     <!-- ÁREA DE CONTEÚDO DINÂMICA -->
+    <div id="main-content" tabindex="-1">
     <div id="main-layout">
         <div id="left-column">
             <div id="left-content-area" class="flex-1 flex flex-col min-h-0">
@@ -664,9 +687,9 @@
 
                     <div id="control-buttons"
                         class="view-only-hidden timer-strip-buttons flex gap-2 w-full max-w-lg shrink-0 mx-auto">
-                        <button id="start-btn" onclick="sendAction('toggle')"
+                        <button id="start-btn" type="button" onclick="sendAction('toggle')"
                             class="flex-[2] adaptive-button text-white font-bold shadow-md active:scale-95 transition-none">INICIAR</button>
-                        <button onclick="sendAction('reset')"
+                        <button type="button" onclick="sendAction('reset')"
                             class="flex-[1] adaptive-button bg-gray-100 text-gray-600 font-bold hover:bg-gray-200 active:scale-95 transition-none">RESET</button>
                     </div>
                 </div>
@@ -674,11 +697,11 @@
 
             <div id="pdf-controls"
                 class="bg-white rounded-xl shadow-sm p-3 flex justify-center items-center gap-4 border border-gray-100 shrink-0">
-                <button onclick="sendAction('prevPdfPage')"
+                <button type="button" onclick="sendAction('prevPdfPage')"
                     class="px-4 py-2 bg-gray-100 hover:bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Anterior</button>
                 <span id="pdf-page-info"
                     class="text-xs font-bold text-gray-600 font-mono min-w-[100px] text-center">Pág. - / -</span>
-                <button onclick="nextPdfPageAction()"
+                <button type="button" onclick="nextPdfPageAction()"
                     class="px-4 py-2 bg-gray-100 hover:bg-indigo-50 text-indigo-700 text-[10px] font-bold rounded-lg uppercase">Seguinte</button>
             </div>
         </div>
@@ -726,6 +749,7 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- MODAIS -->
@@ -919,7 +943,7 @@
                     const c = getColorConfig(itemColorName);
 
                     html += `
-                    <button onclick="${actionStr}" class="side-btn p-2 rounded-xl transition group flex justify-between items-center overflow-hidden ${c.btn}">
+                    <button type="button" onclick="${actionStr}" class="side-btn p-2 rounded-xl transition group flex justify-between items-center overflow-hidden ${c.btn}">
                         <span class="btn-label text-[10px] font-bold truncate ${c.label}">${item.shortLabel}</span>
                         <span class="btn-time text-[10px] font-bold ml-2 shrink-0 ${c.time}">${timeStr}</span>
                     </button>
