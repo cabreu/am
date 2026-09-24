@@ -1,10 +1,16 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt" class="styles-loading">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AM-Esposende</title>
+
+    <style>
+        html.styles-loading body {
+            visibility: hidden;
+        }
+    </style>
 
     <!-- === CONFIGURAÇÃO GLOBAL === -->
     <script type="application/json" id="am-config">
@@ -69,7 +75,9 @@
     </script>
     <!-- =========================== -->
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="tailwind.generated.css"
+        onload="document.documentElement.classList.remove('styles-loading')"
+        onerror="document.documentElement.classList.remove('styles-loading')">
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -138,6 +146,85 @@
             min-height: 0;
             display: flex;
             flex-direction: column;
+        }
+
+        #header-layout {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: stretch;
+        }
+
+        #real-time-panel,
+        #network-panel {
+            flex: 1 1 0;
+            width: auto;
+            min-width: 280px;
+        }
+
+        #header-main-panel {
+            flex: 1.25 1 0;
+            min-width: 300px;
+        }
+
+        #network-panel {
+            gap: 0.5rem;
+            min-width: 280px;
+            height: 75px;
+            min-height: 75px;
+            max-height: 75px;
+            flex-wrap: nowrap;
+            overflow: hidden;
+        }
+
+        #action-container > div:first-child {
+            gap: 0.25rem;
+            flex-wrap: nowrap;
+            justify-content: flex-end;
+            max-width: 100%;
+        }
+
+        #network-panel > *,
+        #action-container,
+        #join-panel {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        #action-container {
+            flex: 1 1 220px;
+        }
+
+        #room-code-display {
+            flex: 1 1 120px;
+            min-width: 0;
+            gap: 0;
+        }
+
+        #room-code-display > div {
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        #join-panel {
+            flex: 1 1 150px;
+            gap: 0.25rem;
+        }
+
+        #join-id-input {
+            flex: 1 1 4rem;
+            width: auto;
+            min-width: 3rem;
+        }
+
+        #btn-create-room {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+
+        #join-panel > button {
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
         }
 
         #left-column {
@@ -499,7 +586,7 @@
     <a href="#main-content" class="sr-only focus-visible:outline-none">Saltar para o conteúdo principal</a>
 
     <!-- CABEÇALHOS -->
-    <div class="flex flex-col lg:flex-row gap-3 p-2 md:p-3 pb-0 shrink-0">
+    <div id="header-layout" class="gap-3 p-2 md:p-3 pb-0 shrink-0">
 
         <div id="real-time-panel"
             class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-indigo-600 flex items-center justify-center lg:w-80 shrink-0">
@@ -507,7 +594,7 @@
                 class="font-mono font-black text-4xl tracking-tighter tabular-nums text-indigo-700">00:00:00</span>
         </div>
 
-        <div
+        <div id="header-main-panel"
             class="bg-white rounded-xl shadow-sm p-3 border-l-4 border-indigo-500 flex items-center justify-between gap-4 flex-1 overflow-hidden">
             <div class="flex items-center gap-3 shrink-0">
                 <div id="stats-container" class="hidden items-center gap-2 border-r border-gray-100 pr-3">
@@ -614,10 +701,10 @@
                     <button id="btn-create-room" type="button" onclick="hostRoom()"
                         class="px-4 py-2 bg-blue-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-blue-700 transition uppercase truncate">Criar
                         Sessão</button>
-                    <div id="join-panel" class="flex gap-1 items-center">
-                        <label for="join-id-input" class="text-[9px] font-black text-gray-500 uppercase tracking-wide">Código</label>
+                    <div id="join-panel" class="flex flex-nowrap gap-1 items-center">
+                        <label for="join-id-input" class="shrink-0 text-[8px] font-black text-gray-500 uppercase tracking-wide">Código</label>
                         <input type="text" id="join-id-input" maxlength="10" placeholder="CÓDIGO" aria-label="Código da sessão"
-                            class="px-2 py-2 border border-gray-200 rounded-lg w-20 text-[10px] text-center uppercase outline-none focus:border-blue-500 bg-gray-50"
+                            class="px-2 py-2 border border-gray-200 rounded-lg w-16 text-[10px] text-center uppercase outline-none focus:border-blue-500 bg-gray-50"
                             onkeydown="if(event.key === 'Enter') joinRoom()">
                         <button type="button" onclick="joinRoom()"
                             class="px-3 py-2 bg-green-600 text-white text-[10px] font-bold rounded-lg shadow hover:bg-green-700 uppercase truncate">Ligar</button>
@@ -1698,7 +1785,7 @@
 
             // 3. Processar link de entrada
             const room = new URLSearchParams(window.location.search).get('room');
-            if (room) { document.getElementById('join-id-input').value = room; setTimeout(joinRoom, 1000); }
+            if (room) { document.getElementById('join-id-input').value = room; joinRoom(); }
 
             updateUI();
         });
