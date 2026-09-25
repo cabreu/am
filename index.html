@@ -98,6 +98,15 @@
             background-color: #f3f4f6;
         }
 
+        body[data-initialized="false"] {
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        body[data-initialized="false"] #welcome-section {
+            overflow: visible;
+        }
+
         .text-gray-400,
         .text-gray-500 {
             color: #374151 !important;
